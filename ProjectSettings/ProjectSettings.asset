@@ -167,7 +167,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.4
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Android: com.unity.template.mixedreality
+    Android: com.unity.unizar.xrcb
     Standalone: com.unity.template.mr
   buildNumber:
     Standalone: 0
