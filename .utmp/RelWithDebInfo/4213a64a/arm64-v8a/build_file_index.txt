@@ -1,0 +1,2 @@
+/Users/jordi/Developer/repositories/unizar/unizar_xr_cb/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/CMakeLists.txt
+/Users/jordi/Developer/repositories/unizar/unizar_xr_cb/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/src/main/cpp/GameActivity/CMakeLists.txt
