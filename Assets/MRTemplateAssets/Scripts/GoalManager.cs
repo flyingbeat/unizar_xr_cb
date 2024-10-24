@@ -91,13 +91,26 @@ public class GoalManager : MonoBehaviour
     ARPlaneManager m_ARPlaneManager;
 
     [SerializeField]
+    ARBoundingBoxManager m_ARBoundingBoxManager;
+
+    [SerializeField]
+    TMP_Dropdown m_SpaceVisualizationSelectorDropdown;
+
+    [SerializeField]
     ObjectSpawner m_ObjectSpawner;
 
     const int k_NumberOfSurfacesTappedToCompleteGoal = 1;
     Vector3 m_TargetOffset = new Vector3(-.5f, -.25f, 1.5f);
 
+    private int _visualizationMode = 0; // 0 = planes, 1 = bounding boxes, 2 = None
+
     void Start()
     {
+        if (m_ARBoundingBoxManager != null)
+        {
+            m_ARBoundingBoxManager.trackablesChanged.AddListener(OnBoundingBoxesChanged);
+        };
+
         m_OnboardingGoals = new Queue<Goal>();
         var welcomeGoal = new Goal(OnboardingGoals.Empty);
         var findSurfaceGoal = new Goal(OnboardingGoals.FindSurfaces);
@@ -119,6 +132,11 @@ public class GoalManager : MonoBehaviour
 
             if (m_VideoPlayerToggle != null)
                 m_VideoPlayerToggle.isOn = false;
+        }
+
+        if (m_SpaceVisualizationSelectorDropdown != null)
+        {
+            m_SpaceVisualizationSelectorDropdown.onValueChanged.AddListener(SelectSceneVisualizationMode);
         }
 
         if (m_FadeMaterial != null)
@@ -266,6 +284,66 @@ public class GoalManager : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         m_ARPlaneManager.enabled = true;
+    }
+
+    public IEnumerator TurnOnBoundingBoxes()
+    {
+        yield return new WaitForSeconds(1f);
+        m_ARBoundingBoxManager.enabled = true;
+    }
+
+    private void SetTrackableAlpha<T>(TrackableCollection<T> trackables, float fillAlpha = 0.3f, float lineAlpha = 1.0f) where T : ARTrackable
+    {
+        foreach (ARTrackable trackable in trackables)
+        {
+            MeshRenderer meshRenderer = trackable.GetComponentInChildren<MeshRenderer>();
+            if (meshRenderer != null)
+            {
+                Color color = meshRenderer.material.color;
+                color.a = fillAlpha;
+                meshRenderer.material.color = color;
+            }
+            LineRenderer lineRenderer = trackable.GetComponentInChildren<LineRenderer>();
+            if (lineRenderer != null)
+            {
+                Color startColor = lineRenderer.startColor;
+                Color endColor = lineRenderer.endColor;
+
+                startColor.a = lineAlpha;
+                endColor.a = lineAlpha;
+                lineRenderer.startColor = startColor;
+                lineRenderer.endColor = endColor;
+            }
+        }
+
+    }
+
+    private void OnBoundingBoxesChanged(ARTrackablesChangedEventArgs<ARBoundingBox> args)
+    {
+        SelectSceneVisualizationMode(_visualizationMode);
+    }
+
+    private void SelectSceneVisualizationMode(int mode)
+    {
+        _visualizationMode = mode;
+        if (mode == 0)
+        {
+            m_ARPlaneManager.enabled = true;
+            m_ARBoundingBoxManager.enabled = false;
+        }
+        else if (mode == 1)
+        {
+            m_ARPlaneManager.enabled = false;
+            m_ARBoundingBoxManager.enabled = true;
+            SetTrackableAlpha(m_ARBoundingBoxManager.trackables);
+        }
+        else if (mode == 2)
+        {
+            m_ARPlaneManager.enabled = false;
+            m_ARBoundingBoxManager.enabled = false;
+            SetTrackableAlpha(m_ARBoundingBoxManager.trackables, 0.0f, 0.0f);
+            SetTrackableAlpha(m_ARPlaneManager.trackables, 0.0f, 0.0f);
+        }
     }
 
     void DisableTooltips()
