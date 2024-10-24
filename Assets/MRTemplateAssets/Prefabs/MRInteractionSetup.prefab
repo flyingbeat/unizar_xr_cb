@@ -580,6 +580,7 @@ MonoBehaviour:
   m_VideoPlayer: {fileID: 0}
   m_VideoPlayerToggle: {fileID: 0}
   m_ARPlaneManager: {fileID: 5497310570242624798}
+  m_ARBoundingBoxManager: {fileID: 0}
   m_ObjectSpawner: {fileID: 3339367952642848919}
 --- !u!1 &2662485833752745289
 GameObject:
@@ -2417,6 +2418,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2218496723442559054, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5497310570242624798}
+    - targetCorrespondingSourceObject: {fileID: 2218496723442559054, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 776606846284339781}
     - targetCorrespondingSourceObject: {fileID: 657184242118504722, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8663460272779064291}
@@ -2514,7 +2518,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5632266133985503990}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1760703bbd54c04488a8d10600262ab, type: 3}
   m_Name: 
@@ -2524,6 +2528,22 @@ MonoBehaviour:
       m_Calls: []
   m_PlanePrefab: {fileID: 5982963534685165758, guid: b08aa487cadd25e48bd9a7c9c00d7680, type: 3}
   m_DetectionMode: 1
+--- !u!114 &776606846284339781
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5632266133985503990}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36c26a894c4b4a7fa891eaf696025cd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <trackablesChanged>k__BackingField:
+    m_PersistentCalls:
+      m_Calls: []
+  m_BoundingBoxPrefab: {fileID: 293106963504090463, guid: 8c31e5698c6bbc64ba09af3def6ab04d, type: 3}
 --- !u!4 &5725254047580564444 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2275526217487247716, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}

@@ -80,3 +80,8 @@ crashlytics-build.properties
 # But keep the demo packages themselves.
 !/Assets/Plugins/Sirenix/Demos/*.unitypackage 
 
+unizar_xr_cb_BurstDebugInformation_DoNotShip/
+
+**/.DS_Store
+
+.utmp/
