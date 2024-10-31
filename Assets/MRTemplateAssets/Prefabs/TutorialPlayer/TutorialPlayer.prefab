@@ -271,7 +271,7 @@ MonoBehaviour:
   m_CheckFor3DOcclusion: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 1073742071
   m_RaycastTriggerInteraction: 1
 --- !u!1 &1685777871014833739
 GameObject:

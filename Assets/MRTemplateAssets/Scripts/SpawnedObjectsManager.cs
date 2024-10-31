@@ -13,11 +13,15 @@ public class SpawnedObjectsManager : MonoBehaviour
     Button m_DestroyObjectsButton;
 
     ObjectSpawner m_Spawner;
+    FurnitureSpawner m_FurnitureSpawner;
 
     void OnEnable()
     {
         m_Spawner = GetComponent<ObjectSpawner>();
+        m_FurnitureSpawner = GetComponent<FurnitureSpawner>();
+
         m_Spawner.spawnAsChildren = true;
+        m_FurnitureSpawner.spawnAsChildren = true;
         OnObjectSelectorDropdownValueChanged(m_ObjectSelectorDropdown.value);
         m_ObjectSelectorDropdown.onValueChanged.AddListener(OnObjectSelectorDropdownValueChanged);
         m_DestroyObjectsButton.onClick.AddListener(OnDestroyObjectsButtonClicked);
@@ -42,8 +46,9 @@ public class SpawnedObjectsManager : MonoBehaviour
 
     void OnDestroyObjectsButtonClicked()
     {
-        foreach (Transform child in m_Spawner.transform)
+        foreach (Transform child in m_FurnitureSpawner.transform)
         {
+            Debug.Log("Destroying " + child.gameObject.ToString());
             Destroy(child.gameObject);
         }
     }

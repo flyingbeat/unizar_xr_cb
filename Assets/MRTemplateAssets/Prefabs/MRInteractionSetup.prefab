@@ -581,6 +581,7 @@ MonoBehaviour:
   m_VideoPlayerToggle: {fileID: 0}
   m_ARPlaneManager: {fileID: 5497310570242624798}
   m_ARBoundingBoxManager: {fileID: 0}
+  m_SpaceVisualizationSelectorDropdown: {fileID: 0}
   m_ObjectSpawner: {fileID: 3339367952642848919}
 --- !u!1 &2662485833752745289
 GameObject:
@@ -2527,7 +2528,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_PlanePrefab: {fileID: 5982963534685165758, guid: b08aa487cadd25e48bd9a7c9c00d7680, type: 3}
-  m_DetectionMode: 1
+  m_DetectionMode: 3
 --- !u!114 &776606846284339781
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -9,6 +9,14 @@ using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 using TMPro;
 using LazyFollow = UnityEngine.XR.Interaction.Toolkit.UI.LazyFollow;
 
+public enum SpaceVisualizationMode
+{
+    None,
+    Planes,
+    BoundingBoxes,
+    Both,
+}
+
 public struct Goal
 {
     public GoalManager.OnboardingGoals CurrentGoal;
@@ -102,15 +110,10 @@ public class GoalManager : MonoBehaviour
     const int k_NumberOfSurfacesTappedToCompleteGoal = 1;
     Vector3 m_TargetOffset = new Vector3(-.5f, -.25f, 1.5f);
 
-    private int _visualizationMode = 0; // 0 = planes, 1 = bounding boxes, 2 = None
+    private SpaceVisualizationMode _visualizationMode = SpaceVisualizationMode.None;
 
     void Start()
     {
-        if (m_ARBoundingBoxManager != null)
-        {
-            m_ARBoundingBoxManager.trackablesChanged.AddListener(OnBoundingBoxesChanged);
-        };
-
         m_OnboardingGoals = new Queue<Goal>();
         var welcomeGoal = new Goal(OnboardingGoals.Empty);
         var findSurfaceGoal = new Goal(OnboardingGoals.FindSurfaces);
@@ -136,7 +139,8 @@ public class GoalManager : MonoBehaviour
 
         if (m_SpaceVisualizationSelectorDropdown != null)
         {
-            m_SpaceVisualizationSelectorDropdown.onValueChanged.AddListener(SelectSceneVisualizationMode);
+            m_SpaceVisualizationSelectorDropdown.onValueChanged.AddListener(SelectSpaceVisualizationMode);
+            SelectSpaceVisualizationMode(_visualizationMode);
         }
 
         if (m_FadeMaterial != null)
@@ -267,7 +271,7 @@ public class GoalManager : MonoBehaviour
                 m_LearnButton.SetActive(true);
             }
 
-            StartCoroutine(TurnOnPlanes());
+            SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
         }
         else if (m_CurrentGoal.CurrentGoal == OnboardingGoals.TapSurface)
         {
@@ -280,16 +284,17 @@ public class GoalManager : MonoBehaviour
         }
     }
 
-    public IEnumerator TurnOnPlanes()
+    private IEnumerator SetARManagerState(ARPlaneManager manager, bool enabled)
     {
-        yield return new WaitForSeconds(1f);
-        m_ARPlaneManager.enabled = true;
+        yield return new WaitForSeconds(1.0f);
+        manager.enabled = enabled;
+        SetTrackableAlpha(manager.trackables, enabled ? 0.3f : 0.0f, enabled ? 1.0f : 0.0f);
     }
-
-    public IEnumerator TurnOnBoundingBoxes()
+    private IEnumerator SetARManagerState(ARBoundingBoxManager manager, bool enabled)
     {
-        yield return new WaitForSeconds(1f);
-        m_ARBoundingBoxManager.enabled = true;
+        yield return new WaitForSeconds(1.0f);
+        manager.enabled = enabled;
+        SetTrackableAlpha(manager.trackables, enabled ? 0.3f : 0.0f, enabled ? 1.0f : 0.0f);
     }
 
     private void SetTrackableAlpha<T>(TrackableCollection<T> trackables, float fillAlpha = 0.3f, float lineAlpha = 1.0f) where T : ARTrackable
@@ -320,29 +325,47 @@ public class GoalManager : MonoBehaviour
 
     private void OnBoundingBoxesChanged(ARTrackablesChangedEventArgs<ARBoundingBox> args)
     {
-        SelectSceneVisualizationMode(_visualizationMode);
+        SelectSpaceVisualizationMode(_visualizationMode);
+    }
+    private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARBoundingBox> args)
+    {
+        SelectSpaceVisualizationMode(_visualizationMode);
     }
 
-    private void SelectSceneVisualizationMode(int mode)
+    private void SelectSpaceVisualizationMode(int mode)
     {
+        SelectSpaceVisualizationMode((SpaceVisualizationMode)mode, true);
+    }
+    private void SelectSpaceVisualizationMode(SpaceVisualizationMode mode, bool fromDropDown = false)
+    {
+        Debug.Log("SelectSpaceVisualizationMode: " + mode);
         _visualizationMode = mode;
-        if (mode == 0)
+        if (fromDropDown) m_SpaceVisualizationSelectorDropdown.SetValueWithoutNotify((int)mode);
+
+        switch (mode)
         {
-            m_ARPlaneManager.enabled = true;
-            m_ARBoundingBoxManager.enabled = false;
-        }
-        else if (mode == 1)
-        {
-            m_ARPlaneManager.enabled = false;
-            m_ARBoundingBoxManager.enabled = true;
-            SetTrackableAlpha(m_ARBoundingBoxManager.trackables);
-        }
-        else if (mode == 2)
-        {
-            m_ARPlaneManager.enabled = false;
-            m_ARBoundingBoxManager.enabled = false;
-            SetTrackableAlpha(m_ARBoundingBoxManager.trackables, 0.0f, 0.0f);
-            SetTrackableAlpha(m_ARPlaneManager.trackables, 0.0f, 0.0f);
+            case SpaceVisualizationMode.Planes:
+                StartCoroutine(SetARManagerState(m_ARPlaneManager, true));
+                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, false));
+                break;
+
+            case SpaceVisualizationMode.BoundingBoxes:
+                StartCoroutine(SetARManagerState(m_ARPlaneManager, false));
+                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, true));
+                break;
+
+            case SpaceVisualizationMode.Both:
+                StartCoroutine(SetARManagerState(m_ARPlaneManager, true));
+                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, true));
+                break;
+
+            case SpaceVisualizationMode.None:
+                StartCoroutine(SetARManagerState(m_ARPlaneManager, false));
+                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, false));
+                break;
+
+            default:
+                break;
         }
     }
 
@@ -390,7 +413,7 @@ public class GoalManager : MonoBehaviour
             m_LearnModal.transform.localScale = Vector3.zero;
         }
 
-        StartCoroutine(TurnOnPlanes());
+        SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
     }
 
     public void ResetCoaching()
