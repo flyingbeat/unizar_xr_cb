@@ -19,17 +19,17 @@ public enum SpaceVisualizationMode
 
 public struct Goal
 {
-    public GoalManager.OnboardingGoals CurrentGoal;
+    public SceneManager.OnboardingGoals CurrentGoal;
     public bool Completed;
 
-    public Goal(GoalManager.OnboardingGoals goal)
+    public Goal(SceneManager.OnboardingGoals goal)
     {
         CurrentGoal = goal;
         Completed = false;
     }
 }
 
-public class GoalManager : MonoBehaviour
+public class SceneManager : MonoBehaviour
 {
     public enum OnboardingGoals
     {
@@ -105,7 +105,7 @@ public class GoalManager : MonoBehaviour
     TMP_Dropdown m_SpaceVisualizationSelectorDropdown;
 
     [SerializeField]
-    ObjectSpawner m_ObjectSpawner;
+    FurnitureSpawner m_FurnitureSpawner;
 
     const int k_NumberOfSurfacesTappedToCompleteGoal = 1;
     Vector3 m_TargetOffset = new Vector3(-.5f, -.25f, 1.5f);
@@ -167,12 +167,12 @@ public class GoalManager : MonoBehaviour
             m_LearnModalButton.onClick.AddListener(CloseModal);
         }
 
-        if (m_ObjectSpawner == null)
+        if (m_FurnitureSpawner == null)
         {
 #if UNITY_2023_1_OR_NEWER
-            m_ObjectSpawner = FindAnyObjectByType<ObjectSpawner>();
+            m_FurnitureSpawner = FindAnyObjectByType<FurnitureSpawner>();
 #else
-            m_ObjectSpawner = FindObjectOfType<ObjectSpawner>();
+            m_FurnitureSpawner = FindObjectOfType<FurnitureSpawner>();
 #endif
         }
     }
@@ -237,7 +237,7 @@ public class GoalManager : MonoBehaviour
     void CompleteGoal()
     {
         if (m_CurrentGoal.CurrentGoal == OnboardingGoals.TapSurface)
-            m_ObjectSpawner.objectSpawned -= OnObjectSpawned;
+            m_FurnitureSpawner.objectSpawned -= OnObjectSpawned;
 
         // disable tooltips before setting next goal
         DisableTooltips();
@@ -280,7 +280,7 @@ public class GoalManager : MonoBehaviour
                 m_LearnButton.SetActive(false);
             }
             m_SurfacesTapped = 0;
-            m_ObjectSpawner.objectSpawned += OnObjectSpawned;
+            m_FurnitureSpawner.objectSpawned += OnObjectSpawned;
         }
     }
 

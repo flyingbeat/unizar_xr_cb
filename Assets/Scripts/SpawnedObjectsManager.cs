@@ -1,9 +1,8 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
-[RequireComponent(typeof(ObjectSpawner))]
+[RequireComponent(typeof(FurnitureSpawner))]
 public class SpawnedObjectsManager : MonoBehaviour
 {
     [SerializeField]
@@ -12,15 +11,15 @@ public class SpawnedObjectsManager : MonoBehaviour
     [SerializeField]
     Button m_DestroyObjectsButton;
 
-    ObjectSpawner m_Spawner;
+    //ObjectSpawner m_Spawner;
     FurnitureSpawner m_FurnitureSpawner;
 
     void OnEnable()
     {
-        m_Spawner = GetComponent<ObjectSpawner>();
+        //m_Spawner = GetComponent<ObjectSpawner>();
         m_FurnitureSpawner = GetComponent<FurnitureSpawner>();
 
-        m_Spawner.spawnAsChildren = true;
+        //m_Spawner.spawnAsChildren = true;
         m_FurnitureSpawner.spawnAsChildren = true;
         OnObjectSelectorDropdownValueChanged(m_ObjectSelectorDropdown.value);
         m_ObjectSelectorDropdown.onValueChanged.AddListener(OnObjectSelectorDropdownValueChanged);
@@ -37,19 +36,35 @@ public class SpawnedObjectsManager : MonoBehaviour
     {
         if (value == 0)
         {
-            m_Spawner.RandomizeSpawnOption();
+            //m_Spawner.RandomizeSpawnOption();
             return;
         }
 
-        m_Spawner.spawnOptionIndex = value - 1;
+        //m_Spawner.spawnOptionIndex = value - 1;
     }
 
     void OnDestroyObjectsButtonClicked()
     {
+        RandomizeFurniturePosition();
+        return;
+
+        Debug.Log(m_FurnitureSpawner.transform.ToString());
         foreach (Transform child in m_FurnitureSpawner.transform)
         {
             Debug.Log("Destroying " + child.gameObject.ToString());
             Destroy(child.gameObject);
         }
     }
+
+    void RandomizeFurniturePosition()
+    {
+        foreach (var child in m_FurnitureSpawner.transform)
+        {
+            var childTransform = (Transform)child;
+            var oldPosition = childTransform.position;
+            childTransform.position = new Vector3(oldPosition.x + Random.Range(-0.5f, 0.5f), oldPosition.y + Random.Range(-0.5f, 0.5f), oldPosition.z);
+        }
+
+    }
+
 }

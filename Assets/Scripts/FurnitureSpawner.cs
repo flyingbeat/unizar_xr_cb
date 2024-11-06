@@ -54,7 +54,7 @@ public class FurnitureSpawner : MonoBehaviour
     }
 
     private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> eventArgs)
-    {   
+    {
         // planes are added at the start of the app
         if (eventArgs.added.Count > 0)
         {
@@ -69,6 +69,14 @@ public class FurnitureSpawner : MonoBehaviour
             }
         }
 
+    }
+
+    private void RemoveFurniture()
+    {
+        foreach (Transform child in transform)
+        {
+            Destroy(child.gameObject);
+        }
     }
 
 
