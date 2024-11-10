@@ -45,14 +45,11 @@ public class SpawnedObjectsManager : MonoBehaviour
 
     void OnDestroyObjectsButtonClicked()
     {
-        RandomizeFurniturePosition();
-        return;
-
         Debug.Log(m_FurnitureSpawner.transform.ToString());
         foreach (Transform child in m_FurnitureSpawner.transform)
         {
-            Debug.Log("Destroying " + child.gameObject.ToString());
-            Destroy(child.gameObject);
+            Debug.Log("child " + child.gameObject.ToString());
+            //Destroy(child.gameObject);
         }
     }
 

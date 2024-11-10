@@ -371,7 +371,7 @@ public class SceneManager : MonoBehaviour
         }
 
         SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
-        m_FurnitureSpawner.SpawnFurniture(changeable: true);
+        //m_FurnitureSpawner.SpawnFurniture(changeable: true);
         m_FurnitureSpawner.SpawnFurniture(changeable: false);
     }
 

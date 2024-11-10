@@ -54,6 +54,9 @@ public class FurnitureSpawner : ObjectSpawner
             objectPrefabs.Add(furniturePrefab);
             List<ARPlane> planes = GetPlanes(associatedPlaneClassification);
 
+            // get a free spawn position and calculate the normal
+            
+
             TrySpawnObject(planes[0].center, planes[0].normal);
             objectPrefabs.Clear();
         }
