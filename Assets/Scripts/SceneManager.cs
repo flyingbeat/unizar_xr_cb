@@ -87,15 +87,6 @@ public class SceneManager : MonoBehaviour
     LazyFollow m_GoalPanelLazyFollow;
 
     [SerializeField]
-    GameObject m_TapTooltip;
-
-    [SerializeField]
-    GameObject m_VideoPlayer;
-
-    [SerializeField]
-    Toggle m_VideoPlayerToggle;
-
-    [SerializeField]
     ARPlaneManager m_ARPlaneManager;
 
     [SerializeField]
@@ -108,7 +99,6 @@ public class SceneManager : MonoBehaviour
     FurnitureSpawner m_FurnitureSpawner;
 
     const int k_NumberOfSurfacesTappedToCompleteGoal = 1;
-    Vector3 m_TargetOffset = new Vector3(-.5f, -.25f, 1.5f);
 
     private SpaceVisualizationMode _visualizationMode = SpaceVisualizationMode.None;
 
@@ -126,16 +116,6 @@ public class SceneManager : MonoBehaviour
         m_OnboardingGoals.Enqueue(endGoal);
 
         m_CurrentGoal = m_OnboardingGoals.Dequeue();
-        if (m_TapTooltip != null)
-            m_TapTooltip.SetActive(false);
-
-        if (m_VideoPlayer != null)
-        {
-            m_VideoPlayer.SetActive(false);
-
-            if (m_VideoPlayerToggle != null)
-                m_VideoPlayerToggle.isOn = false;
-        }
 
         if (m_SpaceVisualizationSelectorDropdown != null)
         {
@@ -224,10 +204,6 @@ public class SceneManager : MonoBehaviour
                     m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
                     break;
                 case OnboardingGoals.TapSurface:
-                    if (m_TapTooltip != null)
-                    {
-                        m_TapTooltip.SetActive(true);
-                    }
                     m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.None;
                     break;
             }
@@ -238,9 +214,6 @@ public class SceneManager : MonoBehaviour
     {
         if (m_CurrentGoal.CurrentGoal == OnboardingGoals.TapSurface)
             m_FurnitureSpawner.objectSpawned -= OnObjectSpawned;
-
-        // disable tooltips before setting next goal
-        DisableTooltips();
 
         m_CurrentGoal.Completed = true;
         m_CurrentGoalIndex++;
@@ -369,17 +342,6 @@ public class SceneManager : MonoBehaviour
         }
     }
 
-    void DisableTooltips()
-    {
-        if (m_CurrentGoal.CurrentGoal == OnboardingGoals.TapSurface)
-        {
-            if (m_TapTooltip != null)
-            {
-                m_TapTooltip.SetActive(false);
-            }
-        }
-    }
-
     public void ForceCompleteGoal()
     {
         CompleteGoal();
@@ -388,11 +350,6 @@ public class SceneManager : MonoBehaviour
     public void ForceEndAllGoals()
     {
         m_CoachingUIParent.transform.localScale = Vector3.zero;
-
-        TurnOnVideoPlayer();
-
-        if (m_VideoPlayerToggle != null)
-            m_VideoPlayerToggle.isOn = true;
 
 
         if (m_FadeMaterial != null)
@@ -414,6 +371,8 @@ public class SceneManager : MonoBehaviour
         }
 
         SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
+        m_FurnitureSpawner.SpawnFurniture(changeable: true);
+        m_FurnitureSpawner.SpawnFurniture(changeable: false);
     }
 
     public void ResetCoaching()
@@ -449,9 +408,6 @@ public class SceneManager : MonoBehaviour
         m_CurrentGoal = m_OnboardingGoals.Dequeue();
         m_AllGoalsFinished = false;
 
-        if (m_TapTooltip != null)
-            m_TapTooltip.SetActive(false);
-
         if (m_LearnButton != null)
         {
             m_LearnButton.SetActive(false);
@@ -473,66 +429,5 @@ public class SceneManager : MonoBehaviour
             CompleteGoal();
             m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
         }
-    }
-
-    public void TooglePlayer(bool visibility)
-    {
-        if (visibility)
-        {
-            TurnOnVideoPlayer();
-        }
-        else
-        {
-            if (m_VideoPlayer.activeSelf)
-            {
-                m_VideoPlayer.SetActive(false);
-                if (m_VideoPlayerToggle.isOn)
-                    m_VideoPlayerToggle.isOn = false;
-            }
-        }
-    }
-
-    void TurnOnVideoPlayer()
-    {
-        if (m_VideoPlayer.activeSelf)
-            return;
-
-        var follow = m_VideoPlayer.GetComponent<LazyFollow>();
-        if (follow != null)
-            follow.rotationFollowMode = LazyFollow.RotationFollowMode.None;
-
-        m_VideoPlayer.SetActive(false);
-        var target = Camera.main.transform;
-        var targetRotation = target.rotation;
-        var newTransform = target;
-        var targetEuler = targetRotation.eulerAngles;
-        targetRotation = Quaternion.Euler
-        (
-            0f,
-            targetEuler.y,
-            targetEuler.z
-        );
-
-        newTransform.rotation = targetRotation;
-        var targetPosition = target.position + newTransform.TransformVector(m_TargetOffset);
-        m_VideoPlayer.transform.position = targetPosition;
-
-
-        var forward = target.position - m_VideoPlayer.transform.position;
-        var targetPlayerRotation = forward.sqrMagnitude > float.Epsilon ? Quaternion.LookRotation(forward, Vector3.up) : Quaternion.identity;
-        targetPlayerRotation *= Quaternion.Euler(new Vector3(0f, 180f, 0f));
-        var targetPlayerEuler = targetPlayerRotation.eulerAngles;
-        var currentEuler = m_VideoPlayer.transform.rotation.eulerAngles;
-        targetPlayerRotation = Quaternion.Euler
-        (
-            currentEuler.x,
-            targetPlayerEuler.y,
-            currentEuler.z
-        );
-
-        m_VideoPlayer.transform.rotation = targetPlayerRotation;
-        m_VideoPlayer.SetActive(true);
-        if (follow != null)
-            follow.rotationFollowMode = LazyFollow.RotationFollowMode.LookAtWithWorldUp;
     }
 }

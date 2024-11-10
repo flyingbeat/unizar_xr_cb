@@ -1,49 +1,32 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
-public class FurnitureSpawner : MonoBehaviour
+public class FurnitureSpawner : ObjectSpawner
 {
-
-    [SerializeField]
-    [Tooltip("The list of prefabs available to spawn.")]
-    List<GameObject> m_FurniturePrefabs = new List<GameObject>();
-
-    [SerializeField]
-    [Tooltip("Whether to spawn each object as a child of this object.")]
-    bool m_SpawnAsChildren;
-
-    /// <summary>
-    /// Whether to spawn each object as a child of this object.
-    /// </summary>
-    public bool spawnAsChildren
-    {
-        get => m_SpawnAsChildren;
-        set => m_SpawnAsChildren = value;
-    }
-
-    /// <summary>
-    /// Event invoked after an object is spawned.
-    /// </summary>
-    /// <seealso cref="TrySpawnObject"/>
-    public event Action<GameObject> objectSpawned;
-
 
     [SerializeField]
     ARPlaneManager m_ARPlaneManager;
 
     [SerializeField]
-    ARBoundingBoxManager m_ARBoundingBoxManager;
+    List<GameObject> m_FixedFurniturePrefabs = new List<GameObject>();
 
+    [SerializeField]
+    List<GameObject> m_ChangableFurniturePrefabs = new List<GameObject>();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         if (m_ARPlaneManager != null)
         {
-            m_ARPlaneManager.trackablesChanged.AddListener(OnPlanesChanged);
+            //Debug.Log("Spawn furniture is called");
+            //SpawnFurniture(changeable: true);
+            //SpawnFurniture(changeable: false);
         }
     }
 
@@ -51,6 +34,45 @@ public class FurnitureSpawner : MonoBehaviour
     void Update()
     {
 
+    }
+
+    public void SpawnFurniture(bool changeable)
+    {
+        objectPrefabs.Clear();
+        List<GameObject> furniturePrefabs = changeable ? m_ChangableFurniturePrefabs : m_FixedFurniturePrefabs;
+        foreach (GameObject furniturePrefab in furniturePrefabs)
+        {
+            if (!Enum.TryParse(furniturePrefab.tag, out PlaneClassifications associatedPlaneClassification))
+            {
+                Debug.LogWarning($"Invalid tag {furniturePrefab.tag} for furniture prefab.");
+                throw new ArgumentException("Prefabs have to be tagged according to their associated plane classification.");
+            }
+            if (changeable)
+            {
+                furniturePrefab.layer = LayerMask.NameToLayer("Changeable");
+            }
+            objectPrefabs.Add(furniturePrefab);
+            List<ARPlane> planes = GetPlanes(associatedPlaneClassification);
+
+            TrySpawnObject(planes[0].center, planes[0].normal);
+            objectPrefabs.Clear();
+        }
+
+    }
+
+    private List<ARPlane> GetPlanes(PlaneClassifications planeClassification)
+    {
+        List<ARPlane> planes = new();
+        foreach (ARPlane plane in m_ARPlaneManager.trackables)
+        {
+            Debug.Log($"Plane classification: {plane.classifications}");
+            if (plane.classifications.HasFlag(planeClassification))
+            {
+                planes.Add(plane);
+            }
+        }
+        Debug.Log($"Found {planes.Count} planes with classification {planeClassification}");
+        return planes;
     }
 
     private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> eventArgs)
@@ -64,51 +86,11 @@ public class FurnitureSpawner : MonoBehaviour
             {
                 if (addedPlane.classifications.HasFlag(PlaneClassifications.WallFace))
                 {
-                    SpawnFurniture(addedPlane.center, addedPlane.normal);
+                    TrySpawnObject(addedPlane.center, addedPlane.normal);
                 }
             }
         }
 
     }
 
-    private void RemoveFurniture()
-    {
-        foreach (Transform child in transform)
-        {
-            Destroy(child.gameObject);
-        }
-    }
-
-
-    private void SpawnFurniture(Vector3 spawnPoint, Vector3 spawnNormal)
-    {
-        // iterate through the list of furniture prefabs
-        foreach (GameObject furniturePrefab in m_FurniturePrefabs)
-        {
-            // spawn the furniture prefab
-            var newObject = Instantiate(furniturePrefab);
-            if (m_SpawnAsChildren)
-                newObject.transform.parent = transform;
-
-            // set the rotation to the same as direction of spawnNormal
-            newObject.transform.SetPositionAndRotation(spawnPoint, Quaternion.LookRotation(spawnNormal));
-            objectSpawned?.Invoke(newObject);
-        }
-    }
-
-
-    private Vector3 getWalls()
-    {
-        foreach (ARPlane plane in m_ARPlaneManager.trackables)
-        {
-            Debug.Log("Plane: " + plane.classifications);
-            if (plane.classifications.HasFlag(PlaneClassifications.WallFace))
-            {
-                Debug.Log("Wall found" + plane.center);
-                return plane.center;
-            }
-        }
-        Debug.LogError("No walls found");
-        return Vector3.zero;
-    }
 }
