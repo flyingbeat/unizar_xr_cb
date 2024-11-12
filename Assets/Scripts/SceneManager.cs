@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
-using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 using TMPro;
 using LazyFollow = UnityEngine.XR.Interaction.Toolkit.UI.LazyFollow;
 
@@ -313,7 +312,7 @@ public class SceneManager : MonoBehaviour
     {
         Debug.Log("SelectSpaceVisualizationMode: " + mode);
         _visualizationMode = mode;
-        if (fromDropDown) m_SpaceVisualizationSelectorDropdown.SetValueWithoutNotify((int)mode);
+        if (!fromDropDown) m_SpaceVisualizationSelectorDropdown.SetValueWithoutNotify((int)mode);
 
         switch (mode)
         {
@@ -371,8 +370,8 @@ public class SceneManager : MonoBehaviour
         }
 
         SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
-        //m_FurnitureSpawner.SpawnFurniture(changeable: true);
         m_FurnitureSpawner.SpawnFurniture(changeable: false);
+        m_FurnitureSpawner.SpawnFurniture(changeable: true);
     }
 
     public void ResetCoaching()

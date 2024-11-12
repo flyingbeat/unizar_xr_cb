@@ -5,9 +5,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
-public class FurnitureSpawner : ObjectSpawner
+public class FurnitureSpawner : BaseObjectSpawner
 {
 
     [SerializeField]
@@ -54,10 +53,25 @@ public class FurnitureSpawner : ObjectSpawner
             objectPrefabs.Add(furniturePrefab);
             List<ARPlane> planes = GetPlanes(associatedPlaneClassification);
 
-            // get a free spawn position and calculate the normal
-            
-
-            TrySpawnObject(planes[0].center, planes[0].normal);
+            if (planes.Count > 0)
+            {
+                ARPlane selectedPlane = planes[UnityEngine.Random.Range(0, planes.Count)];
+                Quaternion rotation = Quaternion.identity;
+                if (selectedPlane.classifications.HasFlag(PlaneClassifications.WallFace))
+                {
+                    rotation = Quaternion.LookRotation(selectedPlane.normal);
+                    applyRandomAngleAtSpawn = false;
+                }
+                else
+                {
+                    applyRandomAngleAtSpawn = true;
+                }
+                TrySpawnObject(selectedPlane.center, rotation);
+            }
+            else
+            {
+                Debug.LogWarning($"No planes found for classification {associatedPlaneClassification}");
+            }
             objectPrefabs.Clear();
         }
 
@@ -80,19 +94,6 @@ public class FurnitureSpawner : ObjectSpawner
 
     private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> eventArgs)
     {
-        // planes are added at the start of the app
-        if (eventArgs.added.Count > 0)
-        {
-            Debug.Log("Planes added" + eventArgs.ToString());
-            // for each plane that is added and is a wall, spawn furniture
-            foreach (ARPlane addedPlane in eventArgs.added)
-            {
-                if (addedPlane.classifications.HasFlag(PlaneClassifications.WallFace))
-                {
-                    TrySpawnObject(addedPlane.center, addedPlane.normal);
-                }
-            }
-        }
 
     }
 

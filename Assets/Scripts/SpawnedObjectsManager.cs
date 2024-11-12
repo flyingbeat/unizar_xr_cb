@@ -49,6 +49,7 @@ public class SpawnedObjectsManager : MonoBehaviour
         foreach (Transform child in m_FurnitureSpawner.transform)
         {
             Debug.Log("child " + child.gameObject.ToString());
+            Debug.Log(child.gameObject.transform.rotation);
             //Destroy(child.gameObject);
         }
     }
