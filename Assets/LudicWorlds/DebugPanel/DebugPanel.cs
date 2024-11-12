@@ -8,14 +8,14 @@ namespace LudicWorlds
 {
     public class DebugPanel : MonoBehaviour
     {
-        private static Canvas   _canvas;
-        private static Text     _debugText;
-        private static Text     _fpsText;
-        private static Text     _statusText; 
-        
-        private float   _elapsedTime;
-        private uint    _fpsSamples;
-        private float   _sumFps;
+        private static Canvas _canvas;
+        private static Text _debugText;
+        private static Text _fpsText;
+        private static Text _statusText;
+
+        private float _elapsedTime;
+        private uint _fpsSamples;
+        private float _sumFps;
 
         private Queue<string> _queuedMessages;
 
@@ -23,7 +23,7 @@ namespace LudicWorlds
 
         private Transform _cameraTransform;
         private Vector3 _dirToPlayer = Vector3.zero;
-        
+
         void Awake()
         {
             AcquireObjects();
@@ -41,7 +41,7 @@ namespace LudicWorlds
         {
             _cameraTransform = Camera.main.transform;
         }
-        
+
         void OnDestroy()
         {
             Application.logMessageReceived -= OnMessageReceived;
@@ -51,26 +51,27 @@ namespace LudicWorlds
         {
             _canvas = this.gameObject.GetComponent<Canvas>();
             Transform ui = this.transform.Find("UI");
-            
+
             _debugText = ui.Find("DebugText").GetComponent<Text>();
             _fpsText = ui.Find("FpsText").GetComponent<Text>();
             _statusText = ui.Find("StatusText").GetComponent<Text>();
         }
-        
+
         void OnMessageReceived(string message, string stackTrace, LogType type)
         {
             _queuedMessages.Enqueue(message);
+            if (type == LogType.Exception) _queuedMessages.Enqueue(stackTrace);
         }
-        
+
         // Update is called once per frame
         void Update()
         {
             _elapsedTime += Time.deltaTime;
 
-            if(_elapsedTime > 0.5f)
+            if (_elapsedTime > 0.5f)
             {
                 //Update FPS every half second 
-                _fpsText.text = ( Mathf.Round((_sumFps / _fpsSamples))).ToString();
+                _fpsText.text = (Mathf.Round((_sumFps / _fpsSamples))).ToString();
 
                 _elapsedTime = 0f;
                 _sumFps = 0f;
@@ -79,11 +80,11 @@ namespace LudicWorlds
 
             _sumFps += (1.0f / Time.smoothDeltaTime);
             _fpsSamples++;
-            
+
             //Face the Camera (Billboard)
             _dirToPlayer = (this.transform.position - _cameraTransform.position).normalized;
             _dirToPlayer.y = 0; // This ensures rotation only around the Y-axis
-            this.transform.rotation = Quaternion.LookRotation( _dirToPlayer );
+            this.transform.rotation = Quaternion.LookRotation(_dirToPlayer);
 
             //Display any queued Debug Log messages...
             if (_queuedMessages.Count > 0)
@@ -94,7 +95,7 @@ namespace LudicWorlds
                 }
 
                 TrimText();
-            }  
+            }
         }
 
         public static void Clear()
@@ -102,7 +103,7 @@ namespace LudicWorlds
             if (_debugText is null) return;
             _debugText.text = "";
         }
-        
+
         public static void Show()
         {
             SetVisibility(true);
@@ -112,34 +113,34 @@ namespace LudicWorlds
         {
             SetVisibility(false);
         }
-        
+
         public static void SetVisibility(bool visible)
         {
             if (_canvas is null) return;
             _canvas.enabled = visible;
         }
-        
+
         public static void ToggleVisibility()
         {
             if (_canvas is null) return;
             _canvas.enabled = !_canvas.enabled;
         }
-        
+
         public static void SetStatus(string message)
         {
             if (_statusText is null) return;
             _statusText.text = (message);
         }
-        
+
         private static void TrimText()
         {
             string[] lines = _debugText.text.Split('\n');
-            
+
             if (lines.Length > MAX_LINES)
             {
                 _debugText.text = string.Join("\n", lines, lines.Length - MAX_LINES, MAX_LINES);
             }
         }
-        
+
     }
 }

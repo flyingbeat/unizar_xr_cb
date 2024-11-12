@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -10,23 +8,14 @@ public class FurnitureSpawner : BaseObjectSpawner
 {
 
     [SerializeField]
-    ARPlaneManager m_ARPlaneManager;
+    List<GameObject> m_FixedFurniturePrefabs = new();
 
     [SerializeField]
-    List<GameObject> m_FixedFurniturePrefabs = new List<GameObject>();
-
-    [SerializeField]
-    List<GameObject> m_ChangableFurniturePrefabs = new List<GameObject>();
+    List<GameObject> m_ChangableFurniturePrefabs = new();
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if (m_ARPlaneManager != null)
-        {
-            //Debug.Log("Spawn furniture is called");
-            //SpawnFurniture(changeable: true);
-            //SpawnFurniture(changeable: false);
-        }
     }
 
     // Update is called once per frame
@@ -35,7 +24,7 @@ public class FurnitureSpawner : BaseObjectSpawner
 
     }
 
-    public void SpawnFurniture(bool changeable)
+    public void SpawnFurniture(bool changeable, TrackableCollection<ARPlane> planes)
     {
         objectPrefabs.Clear();
         List<GameObject> furniturePrefabs = changeable ? m_ChangableFurniturePrefabs : m_FixedFurniturePrefabs;
@@ -50,11 +39,11 @@ public class FurnitureSpawner : BaseObjectSpawner
             {
                 furniturePrefab.layer = LayerMask.NameToLayer("Changeable");
             }
-            List<ARPlane> planes = GetPlanes(associatedPlaneClassification);
+            List<ARPlane> planesWithClassification = GetPlanes(planes, associatedPlaneClassification);
 
-            if (planes.Count > 0)
+            if (planesWithClassification.Count > 0)
             {
-                ARPlane selectedPlane = planes[UnityEngine.Random.Range(0, planes.Count)];
+                ARPlane selectedPlane = planesWithClassification[UnityEngine.Random.Range(0, planesWithClassification.Count)];
                 objectPrefabs.Add(furniturePrefab);
                 TrySpawnObjectOnPlane(selectedPlane);
             }
@@ -67,19 +56,20 @@ public class FurnitureSpawner : BaseObjectSpawner
 
     }
 
-    private List<ARPlane> GetPlanes(PlaneClassifications planeClassification)
+    private List<ARPlane> GetPlanes(TrackableCollection<ARPlane> planes, PlaneClassifications planeClassification)
     {
-        List<ARPlane> planes = new();
-        foreach (ARPlane plane in m_ARPlaneManager.trackables)
+        List<ARPlane> planesWithClassification = new();
+        foreach (ARPlane plane in planes)
         {
-            Debug.Log($"Plane classification: {plane.classifications}, subsumedBy: {plane.subsumedBy.classifications}");
+            Debug.Log(plane.alignment);
+            Debug.Log($"Plane classification: {plane.classifications} subsumedBy: {plane.subsumedBy}");
             if (plane.classifications.HasFlag(planeClassification))
             {
-                planes.Add(plane);
+                planesWithClassification.Add(plane);
             }
         }
-        Debug.Log($"Found {planes.Count} planes with classification {planeClassification}");
-        return planes;
+        Debug.Log($"Found {planesWithClassification.Count} planes with classification {planeClassification}");
+        return planesWithClassification;
     }
 
     private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> eventArgs)

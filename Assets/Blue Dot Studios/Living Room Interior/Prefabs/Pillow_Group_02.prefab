@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1516930486936090708}
   - component: {fileID: 2495807457981773809}
   - component: {fileID: 380014175341429563}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Pillow_Group_02
   m_TagString: Couch
   m_Icon: {fileID: 0}

@@ -18,28 +18,36 @@ public enum SpaceVisualizationMode
 
 public struct Goal
 {
-    public SceneManager.OnboardingGoals CurrentGoal;
+    public SceneManager.GoalTypes CurrentGoal;
     public bool Completed;
+    public int StepIndex;
 
-    public Goal(SceneManager.OnboardingGoals goal)
+    public Goal(SceneManager.GoalTypes goal, int stepIndex)
     {
         CurrentGoal = goal;
         Completed = false;
+        StepIndex = stepIndex;
     }
 }
 
 public class SceneManager : MonoBehaviour
 {
-    public enum OnboardingGoals
+    public enum GoalTypes
     {
         Empty,
         FindSurfaces,
+        RemovalTrial,
+        AdditionTrial,
+        RelocationTrial,
+        ReplacementTrial,
+
     }
 
     Queue<Goal> m_OnboardingGoals;
+    Queue<Goal> m_TrialGoals;
     Goal m_CurrentGoal;
-    bool m_AllGoalsFinished;
-    int m_SurfacesTapped;
+    bool m_AllGoalsFinished = false;
+    bool m_OnboardingFinished = false;
     int m_CurrentGoalIndex = 0;
 
     [Serializable]
@@ -70,6 +78,10 @@ public class SceneManager : MonoBehaviour
     GameObject m_LearnModal;
 
     [SerializeField]
+    [Tooltip("Time in seconds to detect change in scene during trial")]
+    public int m_timeToDetectChange = 10;
+
+    [SerializeField]
     Button m_LearnModalButton;
 
     [SerializeField]
@@ -96,18 +108,16 @@ public class SceneManager : MonoBehaviour
     [SerializeField]
     FurnitureSpawner m_FurnitureSpawner;
 
+    [SerializeField]
+    SpawnedObjectsManager m_SpawnedObjectsManager;
+
+    [SerializeField]
+    GameObject m_ObjectSpawner;
     private SpaceVisualizationMode _visualizationMode = SpaceVisualizationMode.None;
 
     void Start()
     {
-        m_OnboardingGoals = new Queue<Goal>();
-        var welcomeGoal = new Goal(OnboardingGoals.Empty);
-        var findSurfaceGoal = new Goal(OnboardingGoals.FindSurfaces);
-        var endGoal = new Goal(OnboardingGoals.Empty);
-
-        m_OnboardingGoals.Enqueue(welcomeGoal);
-        m_OnboardingGoals.Enqueue(findSurfaceGoal);
-        m_OnboardingGoals.Enqueue(endGoal);
+        InitializeGoals();
 
         m_CurrentGoal = m_OnboardingGoals.Dequeue();
 
@@ -143,11 +153,12 @@ public class SceneManager : MonoBehaviour
 
         if (m_FurnitureSpawner == null)
         {
-#if UNITY_2023_1_OR_NEWER
             m_FurnitureSpawner = FindAnyObjectByType<FurnitureSpawner>();
-#else
-            m_FurnitureSpawner = FindObjectOfType<FurnitureSpawner>();
-#endif
+            Debug.Log("FurnitureSpawner: " + m_FurnitureSpawner.ToString());
+        }
+        if (m_SpawnedObjectsManager == null)
+        {
+            m_SpawnedObjectsManager = FindAnyObjectByType<SpawnedObjectsManager>();
         }
     }
 
@@ -185,17 +196,53 @@ public class SceneManager : MonoBehaviour
     }
 
     // Onboarding Logic
+    void InitializeGoals()
+    {
+        // onboarding
+        m_OnboardingGoals = new Queue<Goal>();
+        var welcomeGoal = new Goal(GoalTypes.Empty, 1); // card 1
+        var findSurfaceGoal = new Goal(GoalTypes.FindSurfaces, 2); // card 2
+        var explanationGoal = new Goal(GoalTypes.Empty, 3); // card 3
+        var endGoal = new Goal(GoalTypes.Empty, 4); // card 4
+
+        m_OnboardingGoals.Enqueue(welcomeGoal);
+        m_OnboardingGoals.Enqueue(findSurfaceGoal);
+        m_OnboardingGoals.Enqueue(explanationGoal);
+        m_OnboardingGoals.Enqueue(endGoal);
+
+        // trials with change in scene
+        m_TrialGoals = new Queue<Goal>();
+        var removal = new Goal(GoalTypes.RemovalTrial, 5); // card 5
+        // var addition = new Goal(GoalTypes.AdditionTrial, 5); // card 5
+        // var relocation = new Goal(GoalTypes.RelocationTrial, 5); // card 5
+        // var replacement = new Goal(GoalTypes.ReplacementTrial, 5); // card 5
+
+        m_TrialGoals.Enqueue(removal);
+        // m_TrialGoals.Enqueue(addition);
+        // m_TrialGoals.Enqueue(relocation);
+        // m_TrialGoals.Enqueue(replacement);
+
+    }
+
     void ProcessGoals()
     {
         if (!m_CurrentGoal.Completed)
         {
             switch (m_CurrentGoal.CurrentGoal)
             {
-                case OnboardingGoals.Empty:
+                case GoalTypes.Empty:
                     m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
+                    if (m_LearnButton != null && m_LearnButton.activeSelf) m_LearnButton.SetActive(false);
                     break;
-                case OnboardingGoals.FindSurfaces:
+                case GoalTypes.FindSurfaces:
                     m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
+                    if (m_LearnButton != null && !m_LearnButton.activeSelf) m_LearnButton.SetActive(true);
+                    break;
+                case GoalTypes.RemovalTrial:
+                case GoalTypes.AdditionTrial:
+                case GoalTypes.RelocationTrial:
+                case GoalTypes.ReplacementTrial:
+                    m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.None;
                     break;
             }
         }
@@ -204,46 +251,102 @@ public class SceneManager : MonoBehaviour
     void CompleteGoal()
     {
         m_CurrentGoal.Completed = true;
+        Debug.Log("Goal: " + m_CurrentGoal.ToString() + "index:" + m_CurrentGoal.StepIndex);
         m_CurrentGoalIndex++;
         if (m_OnboardingGoals.Count > 0)
         {
+            m_StepList[m_CurrentGoal.StepIndex - 1].stepObject.SetActive(false);
+            m_StepList[m_CurrentGoal.StepIndex].stepObject.SetActive(true);
+            m_StepButtonTextField.text = m_StepList[m_CurrentGoal.StepIndex].buttonText;
+            m_SkipButton.SetActive(m_StepList[m_CurrentGoal.StepIndex].includeSkipButton);
             m_CurrentGoal = m_OnboardingGoals.Dequeue();
-            m_StepList[m_CurrentGoalIndex - 1].stepObject.SetActive(false);
-            m_StepList[m_CurrentGoalIndex].stepObject.SetActive(true);
-            m_StepButtonTextField.text = m_StepList[m_CurrentGoalIndex].buttonText;
-            m_SkipButton.SetActive(m_StepList[m_CurrentGoalIndex].includeSkipButton);
+        }
+        else if (!m_OnboardingFinished)
+        {
+            m_OnboardingFinished = true;
+            ForceEndOnboarding();
+        }
+        else if (m_TrialGoals.Count > 0)
+        {
+            m_StepList[m_CurrentGoal.StepIndex - 1].stepObject.SetActive(false);
+            m_CurrentGoal = m_TrialGoals.Dequeue();
         }
         else
         {
+            m_CoachingUIParent.SetActive(false);
             m_AllGoalsFinished = true;
-            ForceEndAllGoals();
         }
 
-        if (m_CurrentGoal.CurrentGoal == OnboardingGoals.FindSurfaces)
+        if (m_CurrentGoal.CurrentGoal == GoalTypes.FindSurfaces)
         {
-            if (m_FadeMaterial != null)
-                m_FadeMaterial.FadeSkybox(true);
-
-            if (m_PassthroughToggle != null)
-                m_PassthroughToggle.isOn = true;
-
-            if (m_LearnButton != null)
-            {
-                m_LearnButton.SetActive(true);
-            }
+            if (m_FadeMaterial != null) m_FadeMaterial.FadeSkybox(true);
+            if (m_PassthroughToggle != null) m_PassthroughToggle.isOn = true;
 
             SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
         }
+
+        if (
+            m_CurrentGoal.CurrentGoal == GoalTypes.RelocationTrial
+            || m_CurrentGoal.CurrentGoal == GoalTypes.ReplacementTrial
+            || m_CurrentGoal.CurrentGoal == GoalTypes.AdditionTrial
+            || m_CurrentGoal.CurrentGoal == GoalTypes.RemovalTrial
+        )
+        {
+            StartCoroutine(StartTrial(m_CurrentGoal.CurrentGoal));
+        }
     }
 
+    IEnumerator StartTrial(GoalTypes goal)
+    {
+        Debug.Log("Starting trial");
+        // grey flicker
+        m_FadeMaterial.FadeSkybox(false);
+        m_ObjectSpawner.SetActive(false);
+        yield return new WaitForSeconds(1f);
+        m_ObjectSpawner.SetActive(true);
+
+        switch (goal)
+        {
+            case GoalTypes.RemovalTrial:
+                m_SpawnedObjectsManager.RemoveRandomObject();
+                break;
+            // case GoalTypes.AdditionTrial:
+            //     m_FurnitureSpawner.AddRandomObject();
+            //     break;
+            // case GoalTypes.RelocationTrial:
+            //     m_SpawnedObjectsManager.RelocateRandomObject();
+            //     break;
+            // case GoalTypes.ReplacementTrial:
+            //     m_SpawnedObjectsManager.RemoveRandomObject();
+            //     m_FurnitureSpawner.SpawnFurniture();
+            //     break;
+            default:
+                Debug.LogError("Invalid goal type");
+                break;
+        }
+        m_FadeMaterial.FadeSkybox(true);
+
+        // wait 45 seconds or button press
+        yield return new WaitForSeconds(m_timeToDetectChange);
+
+        //CompleteGoal();
+        Debug.Log("Trial ended");
+    }
+
+    // called when step button is pressed
     public void ForceCompleteGoal()
     {
         CompleteGoal();
     }
 
-    public void ForceEndAllGoals()
+    // called when skip button is pressed
+    public void ForceEndOnboarding()
     {
-        m_CoachingUIParent.transform.localScale = Vector3.zero;
+        foreach (var step in m_StepList)
+        {
+            step.stepObject.SetActive(false);
+        }
+        m_CoachingUIParent.SetActive(false);
 
 
         if (m_FadeMaterial != null)
@@ -270,25 +373,35 @@ public class SceneManager : MonoBehaviour
 
     public void StartExperiment()
     {
-        m_FurnitureSpawner.SpawnFurniture(true);
-        m_FurnitureSpawner.SpawnFurniture(false);
+        // Spawn fixed furniture
+        Debug.Log(m_FurnitureSpawner.ToString());
+        m_FurnitureSpawner.SpawnFurniture(changeable: false, m_ARPlaneManager.trackables);
+        // Spawn changeable furniture
+        //m_FurnitureSpawner.SpawnFurniture(changeable: true);
+
+        // show button to change scene
+        m_CurrentGoal = m_TrialGoals.Dequeue();
+        m_CoachingUIParent.SetActive(true);
+        m_StepList[m_CurrentGoal.StepIndex - 1].stepObject.SetActive(true);
+
+        // on button press, change scene
+
+        // wait 45 seconds or until button press
+
+        // show button to change scene
+
+        // repeat
     }
 
-    public void ResetOnboarding()
+    public void ResetAll()
     {
-        m_CoachingUIParent.transform.localScale = Vector3.one;
+        m_CoachingUIParent.SetActive(true);
 
 
+        m_SpawnedObjectsManager.DestroyAllObjects();
 
         m_OnboardingGoals.Clear();
-        m_OnboardingGoals = new Queue<Goal>();
-        var welcomeGoal = new Goal(OnboardingGoals.Empty);
-        var findSurfaceGoal = new Goal(OnboardingGoals.FindSurfaces);
-        var endGoal = new Goal(OnboardingGoals.Empty);
-
-        m_OnboardingGoals.Enqueue(welcomeGoal);
-        m_OnboardingGoals.Enqueue(findSurfaceGoal);
-        m_OnboardingGoals.Enqueue(endGoal);
+        InitializeGoals();
 
         for (int i = 0; i < m_StepList.Count; i++)
         {
@@ -306,6 +419,7 @@ public class SceneManager : MonoBehaviour
 
         m_CurrentGoal = m_OnboardingGoals.Dequeue();
         m_AllGoalsFinished = false;
+        m_OnboardingFinished = false;
 
         if (m_LearnButton != null)
         {

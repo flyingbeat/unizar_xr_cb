@@ -43,6 +43,33 @@ public class SpawnedObjectsManager : MonoBehaviour
         //m_Spawner.spawnOptionIndex = value - 1;
     }
 
+    public GameObject RemoveRandomObject()
+    {
+        if (m_FurnitureSpawner.transform.childCount == 0)
+        {
+            return null;
+        }
+
+        int randomIndex = Random.Range(0, m_FurnitureSpawner.transform.childCount);
+        GameObject randomObject = m_FurnitureSpawner.transform.GetChild(randomIndex).gameObject;
+        Destroy(randomObject);
+        Debug.Log("Removed object " + randomObject.ToString());
+        return randomObject;
+    }
+
+    public void DestroyAllObjects()
+    {
+        foreach (Transform child in m_FurnitureSpawner.transform)
+        {
+            Destroy(child.gameObject);
+        }
+    }
+
+    public void ChangeScene()
+    {
+        Debug.Log("ChangeScene");
+    }
+
     void OnDestroyObjectsButtonClicked()
     {
         Debug.Log(m_FurnitureSpawner.transform.ToString());
