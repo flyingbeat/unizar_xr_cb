@@ -50,23 +50,13 @@ public class FurnitureSpawner : BaseObjectSpawner
             {
                 furniturePrefab.layer = LayerMask.NameToLayer("Changeable");
             }
-            objectPrefabs.Add(furniturePrefab);
             List<ARPlane> planes = GetPlanes(associatedPlaneClassification);
 
             if (planes.Count > 0)
             {
                 ARPlane selectedPlane = planes[UnityEngine.Random.Range(0, planes.Count)];
-                Quaternion rotation = Quaternion.identity;
-                if (selectedPlane.classifications.HasFlag(PlaneClassifications.WallFace))
-                {
-                    rotation = Quaternion.LookRotation(selectedPlane.normal);
-                    applyRandomAngleAtSpawn = false;
-                }
-                else
-                {
-                    applyRandomAngleAtSpawn = true;
-                }
-                TrySpawnObject(selectedPlane.center, rotation);
+                objectPrefabs.Add(furniturePrefab);
+                TrySpawnObjectOnPlane(selectedPlane);
             }
             else
             {
@@ -82,7 +72,7 @@ public class FurnitureSpawner : BaseObjectSpawner
         List<ARPlane> planes = new();
         foreach (ARPlane plane in m_ARPlaneManager.trackables)
         {
-            Debug.Log($"Plane classification: {plane.classifications}");
+            Debug.Log($"Plane classification: {plane.classifications}, subsumedBy: {plane.subsumedBy.classifications}");
             if (plane.classifications.HasFlag(planeClassification))
             {
                 planes.Add(plane);

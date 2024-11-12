@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.GameCenter;
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 /// <summary>
@@ -229,4 +232,29 @@ public class BaseObjectSpawner : MonoBehaviour
         objectSpawned?.Invoke(newObject);
         return true;
     }
+
+    public bool TrySpawnObjectOnPlane(ARPlane plane)
+    {
+        Quaternion rotation = Quaternion.identity;
+        Vector3 randomSpawnPoint;
+        if (plane.alignment == PlaneAlignment.Vertical)
+        {
+            applyRandomAngleAtSpawn = false;
+            rotation = Quaternion.LookRotation(plane.normal);
+            float randomZ = UnityEngine.Random.Range(plane.center.z - (plane.size.x / 2), plane.center.z + (plane.size.x / 2));
+            float randomY = UnityEngine.Random.Range(plane.center.y - (plane.size.y / 2), plane.center.y + (plane.size.y / 2));
+            randomSpawnPoint = new Vector3(plane.center.x, randomY, randomZ);
+        }
+        else // Horizontal
+        {
+            applyRandomAngleAtSpawn = true;
+            Vector3 center = plane.center;
+            Vector2 size = plane.size;
+            float randomX = UnityEngine.Random.Range(center.x - (size.x / 2), center.x + (size.x / 2));
+            float randomZ = UnityEngine.Random.Range(center.z - (size.y / 2), center.z + (size.y / 2));
+            randomSpawnPoint = new Vector3(randomX, center.y, randomZ);
+        }
+        return TrySpawnObject(randomSpawnPoint, rotation);
+    }
+
 }
