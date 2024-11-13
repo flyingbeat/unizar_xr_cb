@@ -16,17 +16,25 @@ public enum SpaceVisualizationMode
     Both,
 }
 
+public enum ExperimentPhase
+{
+    Onboarding,
+    Trial,
+}
+
 public struct Goal
 {
     public SceneManager.GoalTypes CurrentGoal;
     public bool Completed;
-    public int StepIndex;
+    public ExperimentPhase Phase;
+    public int UICardIndex;
 
-    public Goal(SceneManager.GoalTypes goal, int stepIndex)
+    public Goal(SceneManager.GoalTypes goal, int uiCardIndex, ExperimentPhase phase)
     {
         CurrentGoal = goal;
         Completed = false;
-        StepIndex = stepIndex;
+        Phase = phase;
+        UICardIndex = uiCardIndex;
     }
 }
 
@@ -36,6 +44,8 @@ public class SceneManager : MonoBehaviour
     {
         Empty,
         FindSurfaces,
+        EndOnboarding,
+        EndExperiment,
         RemovalTrial,
         AdditionTrial,
         RelocationTrial,
@@ -43,18 +53,17 @@ public class SceneManager : MonoBehaviour
 
     }
 
-    Queue<Goal> m_OnboardingGoals;
-    Queue<Goal> m_TrialGoals;
+    Queue<Goal> m_Goals;
     Goal m_CurrentGoal;
     bool m_AllGoalsFinished = false;
     bool m_OnboardingFinished = false;
     int m_CurrentGoalIndex = 0;
 
     [Serializable]
-    class Step
+    class GoalUICard
     {
         [SerializeField]
-        public GameObject stepObject;
+        public GameObject UIObject;
 
         [SerializeField]
         public string buttonText;
@@ -63,7 +72,7 @@ public class SceneManager : MonoBehaviour
     }
 
     [SerializeField]
-    List<Step> m_StepList = new List<Step>();
+    List<GoalUICard> m_GoalUICards = new();
 
     [SerializeField]
     public TextMeshProUGUI m_StepButtonTextField;
@@ -119,7 +128,7 @@ public class SceneManager : MonoBehaviour
     {
         InitializeGoals();
 
-        m_CurrentGoal = m_OnboardingGoals.Dequeue();
+        m_CurrentGoal = m_Goals.Dequeue();
 
         if (m_SpaceVisualizationSelectorDropdown != null)
         {
@@ -198,29 +207,32 @@ public class SceneManager : MonoBehaviour
     // Onboarding Logic
     void InitializeGoals()
     {
-        // onboarding
-        m_OnboardingGoals = new Queue<Goal>();
-        var welcomeGoal = new Goal(GoalTypes.Empty, 1); // card 1
-        var findSurfaceGoal = new Goal(GoalTypes.FindSurfaces, 2); // card 2
-        var explanationGoal = new Goal(GoalTypes.Empty, 3); // card 3
-        var endGoal = new Goal(GoalTypes.Empty, 4); // card 4
+        m_Goals = new Queue<Goal>();
 
-        m_OnboardingGoals.Enqueue(welcomeGoal);
-        m_OnboardingGoals.Enqueue(findSurfaceGoal);
-        m_OnboardingGoals.Enqueue(explanationGoal);
-        m_OnboardingGoals.Enqueue(endGoal);
+        // onboarding
+        var welcomeGoal = new Goal(GoalTypes.Empty, 0, ExperimentPhase.Onboarding); // card 0
+        var findSurfaceGoal = new Goal(GoalTypes.FindSurfaces, 1, ExperimentPhase.Onboarding); // card 1
+        var explanationGoal = new Goal(GoalTypes.Empty, 2, ExperimentPhase.Onboarding); // card 2
+        var endOnboardingGoal = new Goal(GoalTypes.EndOnboarding, 3, ExperimentPhase.Onboarding); // card 3
+
+        m_Goals.Enqueue(welcomeGoal);
+        m_Goals.Enqueue(findSurfaceGoal);
+        m_Goals.Enqueue(explanationGoal);
+        m_Goals.Enqueue(endOnboardingGoal);
 
         // trials with change in scene
-        m_TrialGoals = new Queue<Goal>();
-        var removal = new Goal(GoalTypes.RemovalTrial, 5); // card 5
+        var removal = new Goal(GoalTypes.RemovalTrial, 4, ExperimentPhase.Trial); // card 5
         // var addition = new Goal(GoalTypes.AdditionTrial, 5); // card 5
         // var relocation = new Goal(GoalTypes.RelocationTrial, 5); // card 5
         // var replacement = new Goal(GoalTypes.ReplacementTrial, 5); // card 5
 
-        m_TrialGoals.Enqueue(removal);
+        m_Goals.Enqueue(removal);
         // m_TrialGoals.Enqueue(addition);
         // m_TrialGoals.Enqueue(relocation);
         // m_TrialGoals.Enqueue(replacement);
+
+        var experimentEndGoal = new Goal(GoalTypes.EndExperiment, 4, ExperimentPhase.Onboarding); // card 6
+        m_Goals.Enqueue(experimentEndGoal);
 
     }
 
@@ -232,11 +244,9 @@ public class SceneManager : MonoBehaviour
             {
                 case GoalTypes.Empty:
                     m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
-                    if (m_LearnButton != null && m_LearnButton.activeSelf) m_LearnButton.SetActive(false);
                     break;
                 case GoalTypes.FindSurfaces:
                     m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
-                    if (m_LearnButton != null && !m_LearnButton.activeSelf) m_LearnButton.SetActive(true);
                     break;
                 case GoalTypes.RemovalTrial:
                 case GoalTypes.AdditionTrial:
@@ -251,58 +261,70 @@ public class SceneManager : MonoBehaviour
     void CompleteGoal()
     {
         m_CurrentGoal.Completed = true;
-        Debug.Log("Goal: " + m_CurrentGoal.ToString() + "index:" + m_CurrentGoal.StepIndex);
+        Debug.Log("Completing Goal: " + m_CurrentGoal.CurrentGoal);
+
+        // complete current goal (after clicking on step button)
+        switch (m_CurrentGoal.CurrentGoal)
+        {
+            case GoalTypes.EndOnboarding:
+                ForceEndOnboarding();
+                m_OnboardingFinished = true;
+                break;
+
+            case GoalTypes.EndExperiment:
+                m_CoachingUIParent.SetActive(false);
+                m_AllGoalsFinished = true;
+                break;
+
+            case GoalTypes.FindSurfaces:
+                SelectSpaceVisualizationMode(SpaceVisualizationMode.None);
+                if (m_LearnButton != null && m_LearnButton.activeSelf) m_LearnButton.SetActive(false);
+                break;
+
+            case GoalTypes.RemovalTrial:
+            case GoalTypes.AdditionTrial:
+            case GoalTypes.RelocationTrial:
+            case GoalTypes.ReplacementTrial:
+                StartCoroutine(StartTrial(m_CurrentGoal.CurrentGoal));
+                break;
+
+            default:
+                break;
+        }
+        m_GoalUICards[m_CurrentGoal.UICardIndex].UIObject.SetActive(false);
+
         m_CurrentGoalIndex++;
-        if (m_OnboardingGoals.Count > 0)
+        if (m_Goals.Count > 0)
         {
-            m_StepList[m_CurrentGoal.StepIndex - 1].stepObject.SetActive(false);
-            m_StepList[m_CurrentGoal.StepIndex].stepObject.SetActive(true);
-            m_StepButtonTextField.text = m_StepList[m_CurrentGoal.StepIndex].buttonText;
-            m_SkipButton.SetActive(m_StepList[m_CurrentGoal.StepIndex].includeSkipButton);
-            m_CurrentGoal = m_OnboardingGoals.Dequeue();
-        }
-        else if (!m_OnboardingFinished)
-        {
-            m_OnboardingFinished = true;
-            ForceEndOnboarding();
-        }
-        else if (m_TrialGoals.Count > 0)
-        {
-            m_StepList[m_CurrentGoal.StepIndex - 1].stepObject.SetActive(false);
-            m_CurrentGoal = m_TrialGoals.Dequeue();
-        }
-        else
-        {
-            m_CoachingUIParent.SetActive(false);
-            m_AllGoalsFinished = true;
+            m_CurrentGoal = m_Goals.Dequeue();
+            m_GoalUICards[m_CurrentGoal.UICardIndex].UIObject.SetActive(true);
+            m_StepButtonTextField.text = m_GoalUICards[m_CurrentGoal.UICardIndex].buttonText;
+            m_SkipButton.SetActive(m_GoalUICards[m_CurrentGoal.UICardIndex].includeSkipButton);
         }
 
-        if (m_CurrentGoal.CurrentGoal == GoalTypes.FindSurfaces)
+        // preparing next goal (before pressing on step button)
+        switch (m_CurrentGoal.CurrentGoal)
         {
-            if (m_FadeMaterial != null) m_FadeMaterial.FadeSkybox(true);
-            if (m_PassthroughToggle != null) m_PassthroughToggle.isOn = true;
+            case GoalTypes.FindSurfaces:
+                if (m_FadeMaterial != null) m_FadeMaterial.FadeSkybox(true);
+                if (m_PassthroughToggle != null) m_PassthroughToggle.isOn = true;
+                if (m_LearnButton != null) m_LearnButton.SetActive(true);
+                SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
+                break;
 
-            SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
-        }
-
-        if (
-            m_CurrentGoal.CurrentGoal == GoalTypes.RelocationTrial
-            || m_CurrentGoal.CurrentGoal == GoalTypes.ReplacementTrial
-            || m_CurrentGoal.CurrentGoal == GoalTypes.AdditionTrial
-            || m_CurrentGoal.CurrentGoal == GoalTypes.RemovalTrial
-        )
-        {
-            StartCoroutine(StartTrial(m_CurrentGoal.CurrentGoal));
+            default:
+                break;
         }
     }
 
     IEnumerator StartTrial(GoalTypes goal)
     {
         Debug.Log("Starting trial");
+
         // grey flicker
         m_FadeMaterial.FadeSkybox(false);
         m_ObjectSpawner.SetActive(false);
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(2f);
         m_ObjectSpawner.SetActive(true);
 
         switch (goal)
@@ -342,11 +364,10 @@ public class SceneManager : MonoBehaviour
     // called when skip button is pressed
     public void ForceEndOnboarding()
     {
-        foreach (var step in m_StepList)
+        foreach (var step in m_GoalUICards)
         {
-            step.stepObject.SetActive(false);
+            step.UIObject.SetActive(false);
         }
-        m_CoachingUIParent.SetActive(false);
 
 
         if (m_FadeMaterial != null)
@@ -374,15 +395,11 @@ public class SceneManager : MonoBehaviour
     public void StartExperiment()
     {
         // Spawn fixed furniture
-        Debug.Log(m_FurnitureSpawner.ToString());
+        Debug.Log("Starting experiment");
         m_FurnitureSpawner.SpawnFurniture(changeable: false, m_ARPlaneManager.trackables);
         // Spawn changeable furniture
         //m_FurnitureSpawner.SpawnFurniture(changeable: true);
 
-        // show button to change scene
-        m_CurrentGoal = m_TrialGoals.Dequeue();
-        m_CoachingUIParent.SetActive(true);
-        m_StepList[m_CurrentGoal.StepIndex - 1].stepObject.SetActive(true);
 
         // on button press, change scene
 
@@ -397,27 +414,25 @@ public class SceneManager : MonoBehaviour
     {
         m_CoachingUIParent.SetActive(true);
 
-
         m_SpawnedObjectsManager.DestroyAllObjects();
 
-        m_OnboardingGoals.Clear();
         InitializeGoals();
 
-        for (int i = 0; i < m_StepList.Count; i++)
+        for (int i = 0; i < m_GoalUICards.Count; i++)
         {
             if (i == 0)
             {
-                m_StepList[i].stepObject.SetActive(true);
-                m_SkipButton.SetActive(m_StepList[i].includeSkipButton);
-                m_StepButtonTextField.text = m_StepList[i].buttonText;
+                m_GoalUICards[i].UIObject.SetActive(true);
+                m_SkipButton.SetActive(m_GoalUICards[i].includeSkipButton);
+                m_StepButtonTextField.text = m_GoalUICards[i].buttonText;
             }
             else
             {
-                m_StepList[i].stepObject.SetActive(false);
+                m_GoalUICards[i].UIObject.SetActive(false);
             }
         }
 
-        m_CurrentGoal = m_OnboardingGoals.Dequeue();
+        m_CurrentGoal = m_Goals.Dequeue();
         m_AllGoalsFinished = false;
         m_OnboardingFinished = false;
 

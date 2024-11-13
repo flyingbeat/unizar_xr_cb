@@ -1629,6 +1629,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2451011294386125892, guid: 66d40221d132d04499855da9ce315f20, type: 3}
+      propertyPath: m_Name
+      value: Card 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2451011294386125892, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -1892,6 +1896,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3308570303908512470, guid: 66d40221d132d04499855da9ce315f20, type: 3}
+      propertyPath: m_Name
+      value: Card 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 3308570303908512470, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -1949,7 +1957,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4592561746755248946, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_text
-      value: "That\u2019s it! The experiment will start after you click continue!"
+      value: "That\u2019s it! The experiment will start after you click Start!"
       objectReference: {fileID: 0}
     - target: {fileID: 4592561746755248946, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_margin.w
@@ -2168,6 +2176,10 @@ PrefabInstance:
       value: -220
       objectReference: {fileID: 0}
     - target: {fileID: 7158865763779469689, guid: 66d40221d132d04499855da9ce315f20, type: 3}
+      propertyPath: m_Name
+      value: Card 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7158865763779469689, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -2235,6 +2247,10 @@ PrefabInstance:
     - target: {fileID: 7569831999526431736, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_LocalPosition.y
       value: 222
+      objectReference: {fileID: 0}
+    - target: {fileID: 7752563439712129205, guid: 66d40221d132d04499855da9ce315f20, type: 3}
+      propertyPath: m_Name
+      value: Card 2
       objectReference: {fileID: 0}
     - target: {fileID: 7752563439712129205, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_IsActive
@@ -2383,6 +2399,10 @@ PrefabInstance:
     - target: {fileID: 9163648765846189281, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -4
+      objectReference: {fileID: 0}
+    - target: {fileID: 9176281889616400641, guid: 66d40221d132d04499855da9ce315f20, type: 3}
+      propertyPath: m_Name
+      value: Card 1
       objectReference: {fileID: 0}
     - target: {fileID: 9176281889616400641, guid: 66d40221d132d04499855da9ce315f20, type: 3}
       propertyPath: m_IsActive
@@ -4260,21 +4280,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80d284a18c0b7421881d4e781387a19f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StepList:
-  - stepObject: {fileID: 532264445}
+  m_GoalUICards:
+  - UIObject: {fileID: 532264445}
     buttonText: Continue
     includeSkipButton: 1
-  - stepObject: {fileID: 1624561417}
-    buttonText: Continue
+  - UIObject: {fileID: 1624561417}
+    buttonText: I see Planes
     includeSkipButton: 0
-  - stepObject: {fileID: 593050027}
-    buttonText: Continue
+  - UIObject: {fileID: 593050027}
+    buttonText: Understood
     includeSkipButton: 0
-  - stepObject: {fileID: 827510676}
+  - UIObject: {fileID: 827510676}
     buttonText: Start Experiment
     includeSkipButton: 0
-  - stepObject: {fileID: 1452607113}
-    buttonText: Next change
+  - UIObject: {fileID: 1452607113}
+    buttonText: Next Round
     includeSkipButton: 0
   m_StepButtonTextField: {fileID: 593110201}
   m_SkipButton: {fileID: 465102248}
