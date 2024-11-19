@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using TMPro;
 using LazyFollow = UnityEngine.XR.Interaction.Toolkit.UI.LazyFollow;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 public enum SpaceVisualizationMode
 {
@@ -44,6 +45,7 @@ public class SceneManager : MonoBehaviour
     {
         Empty,
         FindSurfaces,
+        UseControllers,
         EndOnboarding,
         EndExperiment,
         RemovalTrial,
@@ -75,10 +77,13 @@ public class SceneManager : MonoBehaviour
     List<GoalUICard> m_GoalUICards = new();
 
     [SerializeField]
-    public TextMeshProUGUI m_StepButtonTextField;
+    TextMeshProUGUI m_StepButtonTextField;
 
     [SerializeField]
-    public GameObject m_SkipButton;
+    GameObject m_SkipButton;
+
+    [SerializeField]
+    Button m_ContinueButton;
 
     [SerializeField]
     GameObject m_LearnButton;
@@ -122,6 +127,9 @@ public class SceneManager : MonoBehaviour
 
     [SerializeField]
     GameObject m_ObjectSpawner;
+
+    [SerializeField]
+    ObjectPointer m_ObjectPointer;
     private SpaceVisualizationMode _visualizationMode = SpaceVisualizationMode.None;
 
     void Start()
@@ -205,23 +213,29 @@ public class SceneManager : MonoBehaviour
     }
 
     // Onboarding Logic
-    void InitializeGoals()
+    void InitializeGoals(bool onlyTrials = false)
     {
+
         m_Goals = new Queue<Goal>();
+        if (!onlyTrials)
+        {
 
-        // onboarding
-        var welcomeGoal = new Goal(GoalTypes.Empty, 0, ExperimentPhase.Onboarding); // card 0
-        var findSurfaceGoal = new Goal(GoalTypes.FindSurfaces, 1, ExperimentPhase.Onboarding); // card 1
-        var explanationGoal = new Goal(GoalTypes.Empty, 2, ExperimentPhase.Onboarding); // card 2
-        var endOnboardingGoal = new Goal(GoalTypes.EndOnboarding, 3, ExperimentPhase.Onboarding); // card 3
+            // onboarding
+            var welcomeGoal = new Goal(GoalTypes.Empty, 0, ExperimentPhase.Onboarding); // card 0
+            var findSurfaceGoal = new Goal(GoalTypes.FindSurfaces, 1, ExperimentPhase.Onboarding); // card 1
+            var useControllersGoal = new Goal(GoalTypes.UseControllers, 2, ExperimentPhase.Onboarding); // card 2
+            var explanationGoal = new Goal(GoalTypes.Empty, 3, ExperimentPhase.Onboarding); // card 3
+            var endOnboardingGoal = new Goal(GoalTypes.EndOnboarding, 4, ExperimentPhase.Onboarding); // card 4
 
-        m_Goals.Enqueue(welcomeGoal);
-        m_Goals.Enqueue(findSurfaceGoal);
-        m_Goals.Enqueue(explanationGoal);
-        m_Goals.Enqueue(endOnboardingGoal);
+            m_Goals.Enqueue(welcomeGoal);
+            m_Goals.Enqueue(findSurfaceGoal);
+            m_Goals.Enqueue(useControllersGoal);
+            m_Goals.Enqueue(explanationGoal);
+            m_Goals.Enqueue(endOnboardingGoal);
+        }
 
         // trials with change in scene
-        var removal = new Goal(GoalTypes.RemovalTrial, 4, ExperimentPhase.Trial); // card 5
+        var removal = new Goal(GoalTypes.RemovalTrial, 5, ExperimentPhase.Trial); // card 5
         // var addition = new Goal(GoalTypes.AdditionTrial, 5); // card 5
         // var relocation = new Goal(GoalTypes.RelocationTrial, 5); // card 5
         // var replacement = new Goal(GoalTypes.ReplacementTrial, 5); // card 5
@@ -243,11 +257,18 @@ public class SceneManager : MonoBehaviour
             switch (m_CurrentGoal.CurrentGoal)
             {
                 case GoalTypes.Empty:
-                    m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
-                    break;
                 case GoalTypes.FindSurfaces:
                     m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
                     break;
+                case GoalTypes.UseControllers:
+                    m_GoalPanelLazyFollow.positionFollowMode = LazyFollow.PositionFollowMode.Follow;
+                    if (m_ObjectPointer.ControllersInHand())
+                    {
+                        m_ContinueButton.enabled = true;
+                        m_StepButtonTextField.color = Color.white;
+                    }
+                    break;
+
                 case GoalTypes.RemovalTrial:
                 case GoalTypes.AdditionTrial:
                 case GoalTypes.RelocationTrial:
@@ -311,6 +332,10 @@ public class SceneManager : MonoBehaviour
                 if (m_LearnButton != null) m_LearnButton.SetActive(true);
                 SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
                 break;
+            case GoalTypes.UseControllers:
+                m_ContinueButton.enabled = false;
+                m_StepButtonTextField.color = Color.black;
+                break;
 
             default:
                 break;
@@ -368,6 +393,10 @@ public class SceneManager : MonoBehaviour
         {
             step.UIObject.SetActive(false);
         }
+        m_Goals.Clear();
+        InitializeGoals(onlyTrials: true);
+        m_CurrentGoal = m_Goals.Dequeue();
+        m_GoalUICards[m_CurrentGoal.UICardIndex].UIObject.SetActive(true);
 
 
         if (m_FadeMaterial != null)
@@ -398,7 +427,7 @@ public class SceneManager : MonoBehaviour
         Debug.Log("Starting experiment");
         m_FurnitureSpawner.SpawnFurniture(changeable: false, m_ARPlaneManager.trackables);
         // Spawn changeable furniture
-        //m_FurnitureSpawner.SpawnFurniture(changeable: true);
+        m_FurnitureSpawner.SpawnFurniture(changeable: true, m_ARPlaneManager.trackables);
 
 
         // on button press, change scene

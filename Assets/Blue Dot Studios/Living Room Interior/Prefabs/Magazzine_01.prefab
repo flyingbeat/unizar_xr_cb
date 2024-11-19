@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2172011187726311741}
   - component: {fileID: 4246663082498110723}
   - component: {fileID: 8381353601058056755}
+  - component: {fileID: 400246339444361597}
   m_Layer: 0
   m_Name: Magazzine_01
   m_TagString: Table
@@ -86,3 +87,25 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &400246339444361597
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78853599113367391}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -573623054167494729, guid: ba7bdf844b3ffee40b5e47ab7704e63d, type: 3}

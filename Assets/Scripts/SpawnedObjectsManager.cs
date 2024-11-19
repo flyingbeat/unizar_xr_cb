@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using TMPro;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -51,11 +53,24 @@ public class SpawnedObjectsManager : MonoBehaviour
         }
 
         int randomIndex = Random.Range(0, m_FurnitureSpawner.transform.childCount);
-        GameObject randomObject = m_FurnitureSpawner.transform.GetChild(randomIndex).gameObject;
-        Destroy(randomObject);
-        Debug.Log("Removed object " + randomObject.ToString());
-        return randomObject;
+        foreach (Transform child in m_FurnitureSpawner.transform)
+        {
+            if (child.gameObject.layer == LayerMask.NameToLayer("Changeable"))
+            {
+                GameObject randomObject = child.gameObject;
+                List<GameObject> children = new();
+                randomObject.GetChildGameObjects(children);
+                foreach (GameObject mesh in children)
+                {
+                    mesh.SetActive(false);
+                }
+                Debug.Log("Hid object " + randomObject.ToString());
+                return randomObject;
+            }
+        }
+        return null;
     }
+
 
     public void DestroyAllObjects()
     {

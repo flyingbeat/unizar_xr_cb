@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 639036905661148746}
   - component: {fileID: 7842445383737870804}
   - component: {fileID: 4956850040403696663}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: ARBoundingBoxColored
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -71,7 +71,7 @@ GameObject:
   - component: {fileID: 8394728250580609389}
   - component: {fileID: 413225254232827904}
   - component: {fileID: 3815408004897305306}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}

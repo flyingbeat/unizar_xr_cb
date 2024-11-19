@@ -39,6 +39,10 @@ public class FurnitureSpawner : BaseObjectSpawner
             {
                 furniturePrefab.layer = LayerMask.NameToLayer("Changeable");
             }
+            else
+            {
+                furniturePrefab.layer = LayerMask.NameToLayer("Fixed");
+            }
             List<ARPlane> planesWithClassification = GetPlanes(planes, associatedPlaneClassification);
 
             if (planesWithClassification.Count > 0)
