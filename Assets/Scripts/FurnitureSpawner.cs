@@ -7,78 +7,59 @@ using UnityEngine.XR.ARSubsystems;
 public class FurnitureSpawner : BaseObjectSpawner
 {
 
-    [SerializeField]
-    List<GameObject> m_FixedFurniturePrefabs = new();
-
-    [SerializeField]
-    List<GameObject> m_ChangableFurniturePrefabs = new();
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public List<GameObject> furniturePrefabs
     {
+        get { return objectPrefabs; }
+        set { objectPrefabs = value; }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
+    [SerializeField]
+    ARSpaceManager m_ARSpaceManager;
 
-    }
-
-    public void SpawnFurniture(bool changeable, TrackableCollection<ARPlane> planes)
+    public bool TrySpawnOnPlane()
     {
-        objectPrefabs.Clear();
-        List<GameObject> furniturePrefabs = changeable ? m_ChangableFurniturePrefabs : m_FixedFurniturePrefabs;
-        foreach (GameObject furniturePrefab in furniturePrefabs)
+        string tag = furniturePrefabs[spawnOptionIndex].tag;
+        if (!Enum.TryParse(tag, out PlaneClassifications associatedPlaneClassification))
         {
-            if (!Enum.TryParse(furniturePrefab.tag, out PlaneClassifications associatedPlaneClassification))
-            {
-                Debug.LogWarning($"Invalid tag {furniturePrefab.tag} for furniture prefab.");
-                throw new ArgumentException("Prefabs have to be tagged according to their associated plane classification.");
-            }
-            if (changeable)
-            {
-                furniturePrefab.layer = LayerMask.NameToLayer("Changeable");
-            }
-            else
-            {
-                furniturePrefab.layer = LayerMask.NameToLayer("Fixed");
-            }
-            List<ARPlane> planesWithClassification = GetPlanes(planes, associatedPlaneClassification);
+            Debug.LogWarning($"Invalid tag {tag} for furniture prefab.");
+            throw new ArgumentException("Prefabs have to be tagged according to their associated plane classification.");
+        }
+        (Vector3 randomPosition, Quaternion rotation) = m_ARSpaceManager.GetRandomPointOnPlane(associatedPlaneClassification);
+        return base.TrySpawnObject(randomPosition, rotation);
+    }
 
-            if (planesWithClassification.Count > 0)
-            {
-                ARPlane selectedPlane = planesWithClassification[UnityEngine.Random.Range(0, planesWithClassification.Count)];
-                objectPrefabs.Add(furniturePrefab);
-                TrySpawnObjectOnPlane(selectedPlane);
-            }
-            else
-            {
-                Debug.LogWarning($"No planes found for classification {associatedPlaneClassification}");
-            }
-            objectPrefabs.Clear();
+    public bool TrySpawnOnPlane(int furnitureIndex)
+    {
+        spawnOptionIndex = furnitureIndex;
+        return TrySpawnOnPlane();
+    }
+
+    public bool TrySpawnObject(Vector3 position, Quaternion rotation, int furnitureIndex)
+    {
+        spawnOptionIndex = furnitureIndex;
+        return base.TrySpawnObject(position, rotation);
+    }
+
+    public void SpawnAll(int limit = -1)
+    {
+        if (limit == -1)
+        {
+            limit = objectPrefabs.Count;
+        }
+        else if (limit > objectPrefabs.Count)
+        {
+            Debug.LogWarning("Limit is greater than the number of prefabs. Spawning all prefabs.");
+            limit = objectPrefabs.Count;
         }
 
-    }
-
-    private List<ARPlane> GetPlanes(TrackableCollection<ARPlane> planes, PlaneClassifications planeClassification)
-    {
-        List<ARPlane> planesWithClassification = new();
-        foreach (ARPlane plane in planes)
+        for (int i = 0; i < limit; i++)
         {
-            Debug.Log(plane.alignment);
-            Debug.Log($"Plane classification: {plane.classifications} subsumedBy: {plane.subsumedBy}");
-            if (plane.classifications.HasFlag(planeClassification))
+            spawnOptionIndex = i;
+            if (!TrySpawnOnPlane())
             {
-                planesWithClassification.Add(plane);
+                Debug.LogWarning("Failed to spawn object " + objectPrefabs[i].name);
             }
         }
-        Debug.Log($"Found {planesWithClassification.Count} planes with classification {planeClassification}");
-        return planesWithClassification;
-    }
-
-    private void OnPlanesChanged(ARTrackablesChangedEventArgs<ARPlane> eventArgs)
-    {
-
     }
 
 }

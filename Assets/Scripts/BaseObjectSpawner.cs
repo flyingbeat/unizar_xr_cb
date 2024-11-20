@@ -67,8 +67,12 @@ public class BaseObjectSpawner : MonoBehaviour
     /// <seealso cref="isSpawnOptionRandomized"/>
     public int spawnOptionIndex
     {
-        get => m_SpawnOptionIndex;
-        set => m_SpawnOptionIndex = value;
+        get
+        {
+            m_SpawnOptionIndex = isSpawnOptionRandomized ? UnityEngine.Random.Range(0, m_ObjectPrefabs.Count) : m_SpawnOptionIndex;
+            return m_SpawnOptionIndex;
+        }
+        set { m_SpawnOptionIndex = value; }
     }
 
     /// <summary>
@@ -205,8 +209,7 @@ public class BaseObjectSpawner : MonoBehaviour
             }
         }
 
-        var objectIndex = isSpawnOptionRandomized ? UnityEngine.Random.Range(0, m_ObjectPrefabs.Count) : m_SpawnOptionIndex;
-        var newObject = Instantiate(m_ObjectPrefabs[objectIndex]);
+        var newObject = Instantiate(m_ObjectPrefabs[spawnOptionIndex]);
         if (m_SpawnAsChildren)
             newObject.transform.parent = transform;
 
@@ -230,30 +233,6 @@ public class BaseObjectSpawner : MonoBehaviour
 
         objectSpawned?.Invoke(newObject);
         return true;
-    }
-
-    public bool TrySpawnObjectOnPlane(ARPlane plane)
-    {
-        Quaternion rotation = Quaternion.identity;
-        Vector3 randomSpawnPoint;
-        if (plane.alignment == PlaneAlignment.Vertical)
-        {
-            applyRandomAngleAtSpawn = false;
-            rotation = Quaternion.LookRotation(plane.normal);
-            float randomZ = UnityEngine.Random.Range(plane.center.z - (plane.size.y / 2), plane.center.z + (plane.size.y / 2));
-            float randomY = UnityEngine.Random.Range(plane.center.y - (plane.size.x / 2), plane.center.y + (plane.size.x / 2));
-            randomSpawnPoint = new Vector3(plane.center.x, randomY, randomZ);
-        }
-        else // Horizontal
-        {
-            applyRandomAngleAtSpawn = true;
-            Vector3 center = plane.center;
-            Vector2 size = plane.size;
-            float randomX = UnityEngine.Random.Range(center.x - (size.y / 2), center.x + (size.y / 2));
-            float randomZ = UnityEngine.Random.Range(center.z - (size.x / 2), center.z + (size.x / 2));
-            randomSpawnPoint = new Vector3(randomX, center.y, randomZ);
-        }
-        return TrySpawnObject(randomSpawnPoint, rotation);
     }
 
 }

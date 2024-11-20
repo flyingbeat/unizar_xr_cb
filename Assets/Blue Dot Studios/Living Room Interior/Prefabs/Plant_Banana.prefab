@@ -95,7 +95,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8752054254522214655}
-  - component: {fileID: 4825819765508888167}
+  - component: {fileID: 3223537845796262654}
   m_Layer: 0
   m_Name: Plant_Banana
   m_TagString: Floor
@@ -121,7 +121,7 @@ Transform:
   - {fileID: 8033340901205100732}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &4825819765508888167
+--- !u!65 &3223537845796262654
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -140,8 +140,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.5071976, y: 1.0700774, z: 0.7429576}
-  m_Center: {x: -0.0016734004, y: 0.5555756, z: 0.1285212}
+  m_Size: {x: 0.32507068, y: 1.065948, z: 0.32472837}
+  m_Center: {x: 0.014739305, y: 0.54230666, z: 0.004978776}
 --- !u!1001 &2150753075737530616
 PrefabInstance:
   m_ObjectHideFlags: 0

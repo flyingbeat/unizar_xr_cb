@@ -8,6 +8,8 @@ using UnityEngine.XR.ARFoundation;
 using TMPro;
 using LazyFollow = UnityEngine.XR.Interaction.Toolkit.UI.LazyFollow;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
+using Sirenix.Utilities;
+using System.Linq;
 
 public enum SpaceVisualizationMode
 {
@@ -17,24 +19,16 @@ public enum SpaceVisualizationMode
     Both,
 }
 
-public enum ExperimentPhase
-{
-    Onboarding,
-    Trial,
-}
-
 public struct Goal
 {
     public SceneManager.GoalTypes CurrentGoal;
     public bool Completed;
-    public ExperimentPhase Phase;
     public int UICardIndex;
 
-    public Goal(SceneManager.GoalTypes goal, int uiCardIndex, ExperimentPhase phase)
+    public Goal(SceneManager.GoalTypes goal, int uiCardIndex)
     {
         CurrentGoal = goal;
         Completed = false;
-        Phase = phase;
         UICardIndex = uiCardIndex;
     }
 }
@@ -111,10 +105,7 @@ public class SceneManager : MonoBehaviour
     LazyFollow m_GoalPanelLazyFollow;
 
     [SerializeField]
-    ARPlaneManager m_ARPlaneManager;
-
-    [SerializeField]
-    ARBoundingBoxManager m_ARBoundingBoxManager;
+    ARSpaceManager m_ARSpaceManager;
 
     [SerializeField]
     TMP_Dropdown m_SpaceVisualizationSelectorDropdown;
@@ -171,7 +162,6 @@ public class SceneManager : MonoBehaviour
         if (m_FurnitureSpawner == null)
         {
             m_FurnitureSpawner = FindAnyObjectByType<FurnitureSpawner>();
-            Debug.Log("FurnitureSpawner: " + m_FurnitureSpawner.ToString());
         }
         if (m_SpawnedObjectsManager == null)
         {
@@ -221,11 +211,11 @@ public class SceneManager : MonoBehaviour
         {
 
             // onboarding
-            var welcomeGoal = new Goal(GoalTypes.Empty, 0, ExperimentPhase.Onboarding); // card 0
-            var findSurfaceGoal = new Goal(GoalTypes.FindSurfaces, 1, ExperimentPhase.Onboarding); // card 1
-            var useControllersGoal = new Goal(GoalTypes.UseControllers, 2, ExperimentPhase.Onboarding); // card 2
-            var explanationGoal = new Goal(GoalTypes.Empty, 3, ExperimentPhase.Onboarding); // card 3
-            var endOnboardingGoal = new Goal(GoalTypes.EndOnboarding, 4, ExperimentPhase.Onboarding); // card 4
+            var welcomeGoal = new Goal(GoalTypes.Empty, 0); // card 0
+            var findSurfaceGoal = new Goal(GoalTypes.FindSurfaces, 1); // card 1
+            var useControllersGoal = new Goal(GoalTypes.UseControllers, 2); // card 2
+            var explanationGoal = new Goal(GoalTypes.Empty, 3); // card 3
+            var endOnboardingGoal = new Goal(GoalTypes.EndOnboarding, 4); // card 4
 
             m_Goals.Enqueue(welcomeGoal);
             m_Goals.Enqueue(findSurfaceGoal);
@@ -235,17 +225,17 @@ public class SceneManager : MonoBehaviour
         }
 
         // trials with change in scene
-        var removal = new Goal(GoalTypes.RemovalTrial, 5, ExperimentPhase.Trial); // card 5
-        // var addition = new Goal(GoalTypes.AdditionTrial, 5); // card 5
-        // var relocation = new Goal(GoalTypes.RelocationTrial, 5); // card 5
-        // var replacement = new Goal(GoalTypes.ReplacementTrial, 5); // card 5
+        var removal = new Goal(GoalTypes.RemovalTrial, 5); // card 5
+        var addition = new Goal(GoalTypes.AdditionTrial, 5); // card 5
+        var relocation = new Goal(GoalTypes.RelocationTrial, 5); // card 5
+        var replacement = new Goal(GoalTypes.ReplacementTrial, 5); // card 5
 
         m_Goals.Enqueue(removal);
-        // m_TrialGoals.Enqueue(addition);
-        // m_TrialGoals.Enqueue(relocation);
-        // m_TrialGoals.Enqueue(replacement);
+        m_Goals.Enqueue(addition);
+        m_Goals.Enqueue(relocation);
+        m_Goals.Enqueue(replacement);
 
-        var experimentEndGoal = new Goal(GoalTypes.EndExperiment, 4, ExperimentPhase.Onboarding); // card 6
+        var experimentEndGoal = new Goal(GoalTypes.EndExperiment, 4); // card 6
         m_Goals.Enqueue(experimentEndGoal);
 
     }
@@ -288,7 +278,6 @@ public class SceneManager : MonoBehaviour
         switch (m_CurrentGoal.CurrentGoal)
         {
             case GoalTypes.EndOnboarding:
-                ForceEndOnboarding();
                 m_OnboardingFinished = true;
                 break;
 
@@ -344,33 +333,45 @@ public class SceneManager : MonoBehaviour
 
     IEnumerator StartTrial(GoalTypes goal)
     {
-        Debug.Log("Starting trial");
+        Debug.Log("Starting trial" + goal);
 
         // grey flicker
         m_FadeMaterial.FadeSkybox(false);
         m_ObjectSpawner.SetActive(false);
-        yield return new WaitForSeconds(2f);
-        m_ObjectSpawner.SetActive(true);
 
         switch (goal)
         {
             case GoalTypes.RemovalTrial:
-                m_SpawnedObjectsManager.RemoveRandomObject();
+                GameObject hiddenObject = m_SpawnedObjectsManager.HideRandomObject();
+                Debug.Log("Removed " + hiddenObject.name);
                 break;
-            // case GoalTypes.AdditionTrial:
-            //     m_FurnitureSpawner.AddRandomObject();
-            //     break;
-            // case GoalTypes.RelocationTrial:
-            //     m_SpawnedObjectsManager.RelocateRandomObject();
-            //     break;
-            // case GoalTypes.ReplacementTrial:
-            //     m_SpawnedObjectsManager.RemoveRandomObject();
-            //     m_FurnitureSpawner.SpawnFurniture();
-            //     break;
+            case GoalTypes.AdditionTrial:
+                m_FurnitureSpawner.RandomizeSpawnOption();
+                m_FurnitureSpawner.TrySpawnOnPlane();
+                Debug.Log("Added " + m_FurnitureSpawner.furniturePrefabs[m_FurnitureSpawner.spawnOptionIndex].name);
+                break;
+            case GoalTypes.RelocationTrial:
+                GameObject randomObject = m_SpawnedObjectsManager.DestroyRandomObject();
+                int prefabIndex = m_FurnitureSpawner.furniturePrefabs.IndexOf(randomObject);
+                m_FurnitureSpawner.TrySpawnOnPlane(prefabIndex);
+                Debug.Log("Relocated " + randomObject.name);
+                break;
+            case GoalTypes.ReplacementTrial:
+                GameObject removedObject = m_SpawnedObjectsManager.DestroyRandomObject();
+                List<GameObject> furniturePrefabsByTag = m_FurnitureSpawner.furniturePrefabs.Where(prefab => prefab.tag.Equals(removedObject.tag) && !prefab.Equals(removedObject)).ToList();
+                int randomIndex = UnityEngine.Random.Range(0, furniturePrefabsByTag.Count);
+                int furnitureIndex = m_FurnitureSpawner.furniturePrefabs.IndexOf(furniturePrefabsByTag[randomIndex]);
+                m_FurnitureSpawner.applyRandomAngleAtSpawn = false;
+                m_FurnitureSpawner.TrySpawnObject(removedObject.transform.position, Quaternion.identity, furnitureIndex);
+                Debug.Log("Replaced " + removedObject.name + " with " + m_FurnitureSpawner.furniturePrefabs[furnitureIndex].name);
+                break;
             default:
                 Debug.LogError("Invalid goal type");
                 break;
         }
+
+        yield return new WaitForSeconds(2f);
+        m_ObjectSpawner.SetActive(true);
         m_FadeMaterial.FadeSkybox(true);
 
         // wait 45 seconds or button press
@@ -423,12 +424,9 @@ public class SceneManager : MonoBehaviour
 
     public void StartExperiment()
     {
-        // Spawn fixed furniture
+        // Spawn furniture
         Debug.Log("Starting experiment");
-        m_FurnitureSpawner.SpawnFurniture(changeable: false, m_ARPlaneManager.trackables);
-        // Spawn changeable furniture
-        m_FurnitureSpawner.SpawnFurniture(changeable: true, m_ARPlaneManager.trackables);
-
+        m_FurnitureSpawner.SpawnAll();
 
         // on button press, change scene
 
@@ -478,46 +476,6 @@ public class SceneManager : MonoBehaviour
         m_CurrentGoalIndex = 0;
     }
 
-    // Plane visualization TODO: Move to separate script
-    private IEnumerator SetARManagerState(ARPlaneManager manager, bool enabled)
-    {
-        yield return new WaitForSeconds(1.0f);
-        manager.enabled = enabled;
-        SetTrackableAlpha(manager.trackables, enabled ? 0.3f : 0.0f, enabled ? 1.0f : 0.0f);
-    }
-    private IEnumerator SetARManagerState(ARBoundingBoxManager manager, bool enabled)
-    {
-        yield return new WaitForSeconds(1.0f);
-        manager.enabled = enabled;
-        SetTrackableAlpha(manager.trackables, enabled ? 0.3f : 0.0f, enabled ? 1.0f : 0.0f);
-    }
-
-    private void SetTrackableAlpha<T>(TrackableCollection<T> trackables, float fillAlpha = 0.3f, float lineAlpha = 1.0f) where T : ARTrackable
-    {
-        foreach (ARTrackable trackable in trackables)
-        {
-            MeshRenderer meshRenderer = trackable.GetComponentInChildren<MeshRenderer>();
-            if (meshRenderer != null)
-            {
-                Color color = meshRenderer.material.color;
-                color.a = fillAlpha;
-                meshRenderer.material.color = color;
-            }
-            LineRenderer lineRenderer = trackable.GetComponentInChildren<LineRenderer>();
-            if (lineRenderer != null)
-            {
-                Color startColor = lineRenderer.startColor;
-                Color endColor = lineRenderer.endColor;
-
-                startColor.a = lineAlpha;
-                endColor.a = lineAlpha;
-                lineRenderer.startColor = startColor;
-                lineRenderer.endColor = endColor;
-            }
-        }
-
-    }
-
     private void SelectSpaceVisualizationMode(int mode)
     {
         SelectSpaceVisualizationMode((SpaceVisualizationMode)mode, true);
@@ -532,23 +490,23 @@ public class SceneManager : MonoBehaviour
         switch (mode)
         {
             case SpaceVisualizationMode.Planes:
-                StartCoroutine(SetARManagerState(m_ARPlaneManager, true));
-                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, false));
+                m_ARSpaceManager.boundingBoxesVisualized = false;
+                m_ARSpaceManager.planesVisualized = true;
                 break;
 
             case SpaceVisualizationMode.BoundingBoxes:
-                StartCoroutine(SetARManagerState(m_ARPlaneManager, false));
-                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, true));
+                m_ARSpaceManager.boundingBoxesVisualized = true;
+                m_ARSpaceManager.planesVisualized = false;
                 break;
 
             case SpaceVisualizationMode.Both:
-                StartCoroutine(SetARManagerState(m_ARPlaneManager, true));
-                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, true));
+                m_ARSpaceManager.boundingBoxesVisualized = true;
+                m_ARSpaceManager.planesVisualized = true;
                 break;
 
             case SpaceVisualizationMode.None:
-                StartCoroutine(SetARManagerState(m_ARPlaneManager, false));
-                StartCoroutine(SetARManagerState(m_ARBoundingBoxManager, false));
+                m_ARSpaceManager.boundingBoxesVisualized = false;
+                m_ARSpaceManager.planesVisualized = false;
                 break;
 
             default:

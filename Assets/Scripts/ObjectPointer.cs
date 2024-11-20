@@ -11,9 +11,11 @@ public class ObjectPointer : MonoBehaviour
 {
 
     [SerializeField]
+    FurnitureSpawner m_FurnitureSpawner;
+
+    [SerializeField]
     XRRayInteractor RightControllerRayInteractor;
 
-    bool letPoint = false;
     private RaycastHit Hit;
     private InputDevice rightHandDevice;
     private bool buttonHeld = false;
@@ -58,6 +60,7 @@ public class ObjectPointer : MonoBehaviour
         if (rightHandDevice.isValid)
         {
             rightHandDevice.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButtonValue);
+            //rightHandDevice.TryGetFeatureValue(CommonUsages.trigger, out float triggerValue);
             if (primaryButtonValue)
             {
                 if (buttonHeld) return;
@@ -89,10 +92,19 @@ public class ObjectPointer : MonoBehaviour
                 else
                 {
                     Debug.Log("Hit something else");
+                    Debug.Log(CollidedObject.name);
                 }
 
                 buttonHeld = true;
             }
+            // else if (triggerValue > 0.1f)
+            // {
+            //     if (buttonHeld) return;
+            //     Debug.Log("Trigger is pressed");
+            //     RightControllerRayInteractor.TryGetCurrent3DRaycastHit(out Hit);
+            //     m_FurnitureSpawner.TrySpawnAt(Hit.point, Quaternion.identity);
+            //     buttonHeld = true;
+            // }
             else
             {
                 buttonHeld = false;

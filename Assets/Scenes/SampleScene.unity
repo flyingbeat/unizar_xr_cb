@@ -530,6 +530,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2451011294386125892, guid: 66d40221d132d04499855da9ce315f20, type: 3}
   m_PrefabInstance: {fileID: 1364055689}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &873846268 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5803714691751646951, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+  m_PrefabInstance: {fileID: 3001774293689589082}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 814f423e5467a4f928dcd9b8e06ad200, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &934468279 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2970068989662574442, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
@@ -563,6 +574,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4924506573850889901, guid: ad818c36731146e994540a1896ad8f24, type: 3}
       propertyPath: m_SetLineColorGradient
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4924506573850889901, guid: ad818c36731146e994540a1896ad8f24, type: 3}
+      propertyPath: m_StopLineAtFirstRaycastHit
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4924506573850889901, guid: ad818c36731146e994540a1896ad8f24, type: 3}
@@ -715,7 +730,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7462879561657043759, guid: ad818c36731146e994540a1896ad8f24, type: 3}
       propertyPath: m_RaycastMask.m_Bits
-      value: 2147485473
+      value: 2147487521
       objectReference: {fileID: 0}
     - target: {fileID: 7462879561657043759, guid: ad818c36731146e994540a1896ad8f24, type: 3}
       propertyPath: m_EnableUIInteraction
@@ -2682,6 +2697,10 @@ PrefabInstance:
       value: MR Interaction Setup
       objectReference: {fileID: 0}
     - target: {fileID: 3869405404692562304, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: m_FurnitureSpawner
+      value: 
+      objectReference: {fileID: 510272702}
+    - target: {fileID: 3869405404692562304, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
       propertyPath: RightControllerRayInteractor
       value: 
       objectReference: {fileID: 989395436}
@@ -2729,6 +2748,10 @@ PrefabInstance:
       propertyPath: m_ARPlaneManager
       value: 
       objectReference: {fileID: 3001774293689589087}
+    - target: {fileID: 6380104431749398763, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: m_ARSpaceManager
+      value: 
+      objectReference: {fileID: 873846268}
     - target: {fileID: 6380104431749398763, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
       propertyPath: m_ContinueButton
       value: 
@@ -2874,6 +2897,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 3001774293689589087}
     - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: m_ARSpaceManager
+      value: 
+      objectReference: {fileID: 873846268}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
       propertyPath: m_OnlySpawnInView
       value: 0
       objectReference: {fileID: 0}
@@ -2894,9 +2921,41 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: m_ObjectPrefabs.Array.size
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
       propertyPath: m_FurniturePrefabs.Array.size
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: 'm_ObjectPrefabs.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2957573555907027152, guid: 795c77ce10d7f7c4d8b29fcb239d3faf, type: 3}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: 'm_ObjectPrefabs.Array.data[1]'
+      value: 
+      objectReference: {fileID: 261682049661995747, guid: f743966a99863894d91ded4057990b83, type: 3}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: 'm_ObjectPrefabs.Array.data[2]'
+      value: 
+      objectReference: {fileID: 6000927435180127534, guid: ec26443e2cc7bec49948f68970994db0, type: 3}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: 'm_ObjectPrefabs.Array.data[3]'
+      value: 
+      objectReference: {fileID: 5624201441842572637, guid: b14494ee6e38e9a42822e16122293e9b, type: 3}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: 'm_ObjectPrefabs.Array.data[4]'
+      value: 
+      objectReference: {fileID: 78853599113367391, guid: 1a89cc7143d733c43bd4c58f38e2e14d, type: 3}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: 'm_ObjectPrefabs.Array.data[5]'
+      value: 
+      objectReference: {fileID: 3165773283408212453, guid: b74b4be557256034f9724ac48554724f, type: 3}
+    - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
+      propertyPath: 'm_ObjectPrefabs.Array.data[6]'
+      value: 
+      objectReference: {fileID: 3510942307238549915, guid: 14cc678b187da294e92d4779b67a4026, type: 3}
     - target: {fileID: 6706854510654898195, guid: 86a5bf68cb51f4e44bd3893bd22a2ba7, type: 3}
       propertyPath: 'm_FurniturePrefabs.Array.data[0]'
       value: 
