@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityEngine.XR;
 using UnityEngine.XR.ARFoundation;
+using System;
 
 
 public class ObjectPointer : MonoBehaviour
@@ -16,9 +17,12 @@ public class ObjectPointer : MonoBehaviour
     [SerializeField]
     XRRayInteractor RightControllerRayInteractor;
 
-    private RaycastHit Hit;
+    public event Action<RaycastHit> ButtonPressed;
+    private RaycastHit m_hit;
+    public RaycastHit Hit { get { return m_hit; } }
     private InputDevice rightHandDevice;
-    private bool buttonHeld = false;
+    private bool m_buttonHeld = false;
+    public bool buttonHeld { get { return m_buttonHeld; } }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -60,54 +64,18 @@ public class ObjectPointer : MonoBehaviour
         if (rightHandDevice.isValid)
         {
             rightHandDevice.TryGetFeatureValue(CommonUsages.primaryButton, out bool primaryButtonValue);
-            //rightHandDevice.TryGetFeatureValue(CommonUsages.trigger, out float triggerValue);
             if (primaryButtonValue)
             {
-                if (buttonHeld) return;
+                if (m_buttonHeld) return;
 
-                Debug.Log("Primary button is pressed");
-                RightControllerRayInteractor.TryGetCurrent3DRaycastHit(out Hit);
-                GameObject CollidedObject = Hit.collider.gameObject;
-                int CollidedObjectLayer = CollidedObject.layer;
-                if (CollidedObjectLayer == LayerMask.NameToLayer("Changeable"))
-                {
-                    Debug.Log("Hit a changeable object");
-                    Debug.Log(CollidedObject.name);
-                }
-                else if (CollidedObjectLayer == LayerMask.NameToLayer("Fixed"))
-                {
-                    Debug.Log("Hit a fixed object");
-                    Debug.Log(CollidedObject.name);
-                }
-                else if (CollidedObjectLayer == LayerMask.NameToLayer("Planes"))
-                {
-                    Debug.Log("Hit a plane");
-                    ARPlane plane = CollidedObject.GetComponent<ARPlane>();
-                    Debug.Log(plane.classifications);
-                }
-                else if (CollidedObjectLayer == LayerMask.NameToLayer("BoundingBoxes"))
-                {
-                    Debug.Log("Hit a bounding box");
-                }
-                else
-                {
-                    Debug.Log("Hit something else");
-                    Debug.Log(CollidedObject.name);
-                }
+                RightControllerRayInteractor.TryGetCurrent3DRaycastHit(out m_hit);
+                ButtonPressed?.Invoke(m_hit);
 
-                buttonHeld = true;
+                m_buttonHeld = true;
             }
-            // else if (triggerValue > 0.1f)
-            // {
-            //     if (buttonHeld) return;
-            //     Debug.Log("Trigger is pressed");
-            //     RightControllerRayInteractor.TryGetCurrent3DRaycastHit(out Hit);
-            //     m_FurnitureSpawner.TrySpawnAt(Hit.point, Quaternion.identity);
-            //     buttonHeld = true;
-            // }
             else
             {
-                buttonHeld = false;
+                m_buttonHeld = false;
             }
         }
     }

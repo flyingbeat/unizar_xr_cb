@@ -157,6 +157,13 @@ public class BaseObjectSpawner : MonoBehaviour
     /// <seealso cref="TrySpawnObject"/>
     public event Action<GameObject> objectSpawned;
 
+    private GameObject m_spawnedObject;
+    public GameObject spawnedObject
+    {
+        get => m_spawnedObject;
+        private set => m_spawnedObject = value;
+    }
+
     /// <summary>
     /// See <see cref="MonoBehaviour"/>.
     /// </summary>
@@ -230,7 +237,7 @@ public class BaseObjectSpawner : MonoBehaviour
             visualizationTrans.position = spawnPoint;
             visualizationTrans.rotation = newObject.transform.rotation;
         }
-
+        spawnedObject = newObject;
         objectSpawned?.Invoke(newObject);
         return true;
     }

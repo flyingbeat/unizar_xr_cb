@@ -4,11 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using UnityEngine.XR.ARFoundation;
 using TMPro;
 using LazyFollow = UnityEngine.XR.Interaction.Toolkit.UI.LazyFollow;
-using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
-using Sirenix.Utilities;
 using System.Linq;
 
 public enum SpaceVisualizationMode
@@ -87,7 +84,7 @@ public class SceneManager : MonoBehaviour
 
     [SerializeField]
     [Tooltip("Time in seconds to detect change in scene during trial")]
-    public int m_timeToDetectChange = 10;
+    public float m_timeToDetectChange = 10.0f;
 
     [SerializeField]
     Button m_LearnModalButton;
@@ -121,7 +118,11 @@ public class SceneManager : MonoBehaviour
 
     [SerializeField]
     ObjectPointer m_ObjectPointer;
+
+    [SerializeField]
+    LogManager m_LogManager;
     private SpaceVisualizationMode _visualizationMode = SpaceVisualizationMode.None;
+    private bool m_stopTrial = false;
 
     void Start()
     {
@@ -167,6 +168,11 @@ public class SceneManager : MonoBehaviour
         {
             m_SpawnedObjectsManager = FindAnyObjectByType<SpawnedObjectsManager>();
         }
+        if (m_ObjectPointer != null)
+        {
+            m_ObjectPointer.ButtonPressed += OnControllerButtonPressed;
+        }
+
     }
 
     void Update()
@@ -183,6 +189,14 @@ public class SceneManager : MonoBehaviour
             CompleteGoal();
         }
 #endif
+    }
+
+    void OnDestroy()
+    {
+        if (m_ObjectPointer != null)
+        {
+            m_ObjectPointer.ButtonPressed -= OnControllerButtonPressed;
+        }
     }
 
     // UI Callbacks
@@ -284,6 +298,7 @@ public class SceneManager : MonoBehaviour
             case GoalTypes.EndExperiment:
                 m_CoachingUIParent.SetActive(false);
                 m_AllGoalsFinished = true;
+                m_LogManager.SaveToFile();
                 break;
 
             case GoalTypes.FindSurfaces:
@@ -334,6 +349,12 @@ public class SceneManager : MonoBehaviour
     IEnumerator StartTrial(GoalTypes goal)
     {
         Debug.Log("Starting trial" + goal);
+        m_stopTrial = false;
+        LogEntry logEntry = new()
+        {
+            timestamp = DateTime.Now,
+            changeType = goal,
+        };
 
         // grey flicker
         m_FadeMaterial.FadeSkybox(false);
@@ -343,17 +364,27 @@ public class SceneManager : MonoBehaviour
         {
             case GoalTypes.RemovalTrial:
                 GameObject hiddenObject = m_SpawnedObjectsManager.HideRandomObject();
+                logEntry.objectName = hiddenObject.name;
+                logEntry.objectPosition = hiddenObject.transform.position;
+                logEntry.associatedPlaneClassification = hiddenObject.tag;
                 Debug.Log("Removed " + hiddenObject.name);
                 break;
             case GoalTypes.AdditionTrial:
                 m_FurnitureSpawner.RandomizeSpawnOption();
                 m_FurnitureSpawner.TrySpawnOnPlane();
-                Debug.Log("Added " + m_FurnitureSpawner.furniturePrefabs[m_FurnitureSpawner.spawnOptionIndex].name);
+                GameObject addedObject = m_FurnitureSpawner.spawnedObject;
+                logEntry.objectName = addedObject.name;
+                logEntry.objectPosition = addedObject.transform.position;
+                logEntry.associatedPlaneClassification = addedObject.tag;
+                Debug.Log("Added " + addedObject.name);
                 break;
             case GoalTypes.RelocationTrial:
                 GameObject randomObject = m_SpawnedObjectsManager.DestroyRandomObject();
                 int prefabIndex = m_FurnitureSpawner.furniturePrefabs.IndexOf(randomObject);
                 m_FurnitureSpawner.TrySpawnOnPlane(prefabIndex);
+                logEntry.objectName = randomObject.name;
+                logEntry.objectPosition = randomObject.transform.position;
+                logEntry.associatedPlaneClassification = randomObject.tag;
                 Debug.Log("Relocated " + randomObject.name);
                 break;
             case GoalTypes.ReplacementTrial:
@@ -364,27 +395,64 @@ public class SceneManager : MonoBehaviour
                 m_FurnitureSpawner.applyRandomAngleAtSpawn = false;
                 m_FurnitureSpawner.TrySpawnObject(removedObject.transform.position, Quaternion.identity, furnitureIndex);
                 Debug.Log("Replaced " + removedObject.name + " with " + m_FurnitureSpawner.furniturePrefabs[furnitureIndex].name);
+                logEntry.objectName = removedObject.name + "->" + m_FurnitureSpawner.furniturePrefabs[furnitureIndex].name;
+                logEntry.objectPosition = removedObject.transform.position;
+                logEntry.associatedPlaneClassification = removedObject.tag;
                 break;
             default:
                 Debug.LogError("Invalid goal type");
                 break;
         }
 
+        logEntry.userPosition = m_FurnitureSpawner.cameraToFace.transform.position;
+        logEntry.userDirection = m_FurnitureSpawner.cameraToFace.transform.forward;
+
         yield return new WaitForSeconds(2f);
         m_ObjectSpawner.SetActive(true);
         m_FadeMaterial.FadeSkybox(true);
 
         // wait 45 seconds or button press
-        yield return new WaitForSeconds(m_timeToDetectChange);
+        float elapsedTime = 0f;
+        while (elapsedTime <= m_timeToDetectChange && !m_ObjectPointer.buttonHeld)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        logEntry.timeToDetect = elapsedTime;
 
+        if (elapsedTime > m_timeToDetectChange)
+        {
+            // trial ended by timeout
+            logEntry.pointedAtSomething = false;
+            Debug.Log("Trial ended by timeout");
+        }
+        else
+        {
+            // trial was stopped by buttonpress
+            logEntry.pointedAtSomething = true;
+            Collider controllerRaycastCollider = m_ObjectPointer.Hit.collider;
+            if (controllerRaycastCollider != null)
+            {
+                logEntry.pointedObjectName = controllerRaycastCollider.gameObject.name;
+                logEntry.pointedObjectPosition = controllerRaycastCollider.transform.position;
+                Debug.Log("Trial ended by button press");
+            }
+        }
+        m_LogManager.Log(logEntry);
         //CompleteGoal();
-        Debug.Log("Trial ended");
     }
 
     // called when step button is pressed
     public void ForceCompleteGoal()
     {
         CompleteGoal();
+    }
+
+    public void OnControllerButtonPressed(RaycastHit hit)
+    {
+        Debug.Log("Primary button is pressed");
+        Debug.Log(hit.collider.gameObject.name);
+        m_stopTrial = true;
     }
 
     // called when skip button is pressed
@@ -427,6 +495,7 @@ public class SceneManager : MonoBehaviour
         // Spawn furniture
         Debug.Log("Starting experiment");
         m_FurnitureSpawner.SpawnAll();
+        m_LogManager.Init();
 
         // on button press, change scene
 
