@@ -202,7 +202,7 @@ public class BaseObjectSpawner : MonoBehaviour
     /// Otherwise, it will spawn the prefab at the index.
     /// </remarks>
     /// <seealso cref="objectSpawned"/>
-    public bool TrySpawnObject(Vector3 spawnPoint, Quaternion rotation)
+    public bool TrySpawnObject(Vector3 spawnPoint, Quaternion rotation, GameObject prefab = null)
     {
         if (m_OnlySpawnInView)
         {
@@ -216,7 +216,7 @@ public class BaseObjectSpawner : MonoBehaviour
             }
         }
 
-        var newObject = Instantiate(m_ObjectPrefabs[spawnOptionIndex]);
+        var newObject = Instantiate((prefab != null) ? prefab : m_ObjectPrefabs[spawnOptionIndex]);
         if (m_SpawnAsChildren)
             newObject.transform.parent = transform;
 

@@ -16,16 +16,16 @@ public class FurnitureSpawner : BaseObjectSpawner
     [SerializeField]
     ARSpaceManager m_ARSpaceManager;
 
-    public bool TrySpawnOnPlane()
+    public bool TrySpawnOnPlane(GameObject prefab = null)
     {
-        string tag = furniturePrefabs[spawnOptionIndex].tag;
+        string tag = (prefab != null) ? prefab.tag : furniturePrefabs[spawnOptionIndex].tag;
         if (!Enum.TryParse(tag, out PlaneClassifications associatedPlaneClassification))
         {
             Debug.LogWarning($"Invalid tag {tag} for furniture prefab.");
             throw new ArgumentException("Prefabs have to be tagged according to their associated plane classification.");
         }
         (Vector3 randomPosition, Quaternion rotation) = m_ARSpaceManager.GetRandomPointOnPlane(associatedPlaneClassification);
-        return base.TrySpawnObject(randomPosition, rotation);
+        return base.TrySpawnObject(randomPosition, rotation, prefab);
     }
 
     public bool TrySpawnOnPlane(int furnitureIndex)

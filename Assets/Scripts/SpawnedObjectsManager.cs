@@ -3,6 +3,7 @@ using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 [RequireComponent(typeof(FurnitureSpawner))]
 public class SpawnedObjectsManager : MonoBehaviour
@@ -47,12 +48,12 @@ public class SpawnedObjectsManager : MonoBehaviour
     public GameObject HideRandomObject()
     {
         GameObject randomObject = GetRandomObject();
-        SetRendererRicursively(randomObject, enabled: false);
-        return randomObject;
+        return HideObject(randomObject);
     }
 
     public GameObject HideObject(GameObject gameObject)
     {
+        gameObject.SetLayerRecursively(LayerMask.NameToLayer("Hidden"));
         SetRendererRicursively(gameObject, enabled: false);
         return gameObject;
     }

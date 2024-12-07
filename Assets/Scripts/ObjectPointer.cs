@@ -1,21 +1,19 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Interactors;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Events;
 using UnityEngine.XR;
-using UnityEngine.XR.ARFoundation;
 using System;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 
 public class ObjectPointer : MonoBehaviour
 {
 
     [SerializeField]
-    FurnitureSpawner m_FurnitureSpawner;
+    XRRayInteractor m_defaultRayInteractor;
+
 
     [SerializeField]
-    XRRayInteractor RightControllerRayInteractor;
+    XRRayInteractor m_hiddenLayerRayInteractor;
 
     public event Action<RaycastHit> ButtonPressed;
     private RaycastHit m_hit;
@@ -68,7 +66,9 @@ public class ObjectPointer : MonoBehaviour
             {
                 if (m_buttonHeld) return;
 
-                RightControllerRayInteractor.TryGetCurrent3DRaycastHit(out m_hit);
+                bool hitOnDefaultLayer = m_defaultRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit defaultLayerHit);
+                bool hitOnHiddenLayer = m_hiddenLayerRayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hiddenLayerHit);
+                m_hit = hitOnHiddenLayer ? hiddenLayerHit : defaultLayerHit;
                 ButtonPressed?.Invoke(m_hit);
 
                 m_buttonHeld = true;

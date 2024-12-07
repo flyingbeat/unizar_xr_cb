@@ -49,8 +49,6 @@ public class SceneManager : MonoBehaviour
     Queue<Goal> m_Goals;
     Goal m_CurrentGoal;
     bool m_AllGoalsFinished = false;
-    bool m_OnboardingFinished = false;
-    int m_CurrentGoalIndex = 0;
 
     [Serializable]
     class GoalUICard
@@ -122,7 +120,6 @@ public class SceneManager : MonoBehaviour
     [SerializeField]
     LogManager m_LogManager;
     private SpaceVisualizationMode _visualizationMode = SpaceVisualizationMode.None;
-    private bool m_stopTrial = false;
 
     void Start()
     {
@@ -249,7 +246,7 @@ public class SceneManager : MonoBehaviour
         m_Goals.Enqueue(relocation);
         m_Goals.Enqueue(replacement);
 
-        var experimentEndGoal = new Goal(GoalTypes.EndExperiment, 4); // card 6
+        var experimentEndGoal = new Goal(GoalTypes.EndExperiment, 6); // card 6
         m_Goals.Enqueue(experimentEndGoal);
 
     }
@@ -285,14 +282,14 @@ public class SceneManager : MonoBehaviour
 
     void CompleteGoal()
     {
-        m_CurrentGoal.Completed = true;
         Debug.Log("Completing Goal: " + m_CurrentGoal.CurrentGoal);
+        m_CurrentGoal.Completed = true;
 
         // complete current goal (after clicking on step button)
         switch (m_CurrentGoal.CurrentGoal)
         {
             case GoalTypes.EndOnboarding:
-                m_OnboardingFinished = true;
+                StartExperiment();
                 break;
 
             case GoalTypes.EndExperiment:
@@ -318,7 +315,6 @@ public class SceneManager : MonoBehaviour
         }
         m_GoalUICards[m_CurrentGoal.UICardIndex].UIObject.SetActive(false);
 
-        m_CurrentGoalIndex++;
         if (m_Goals.Count > 0)
         {
             m_CurrentGoal = m_Goals.Dequeue();
@@ -349,7 +345,7 @@ public class SceneManager : MonoBehaviour
     IEnumerator StartTrial(GoalTypes goal)
     {
         Debug.Log("Starting trial" + goal);
-        m_stopTrial = false;
+        m_CoachingUIParent.SetActive(false);
         LogEntry logEntry = new()
         {
             timestamp = DateTime.Now,
@@ -359,11 +355,11 @@ public class SceneManager : MonoBehaviour
         // grey flicker
         m_FadeMaterial.FadeSkybox(false);
         m_ObjectSpawner.SetActive(false);
-
+        GameObject hiddenObject = new("dummy");
         switch (goal)
         {
             case GoalTypes.RemovalTrial:
-                GameObject hiddenObject = m_SpawnedObjectsManager.HideRandomObject();
+                hiddenObject = m_SpawnedObjectsManager.HideRandomObject();
                 logEntry.objectName = hiddenObject.name;
                 logEntry.objectPosition = hiddenObject.transform.position;
                 logEntry.associatedPlaneClassification = hiddenObject.tag;
@@ -380,8 +376,7 @@ public class SceneManager : MonoBehaviour
                 break;
             case GoalTypes.RelocationTrial:
                 GameObject randomObject = m_SpawnedObjectsManager.DestroyRandomObject();
-                int prefabIndex = m_FurnitureSpawner.furniturePrefabs.IndexOf(randomObject);
-                m_FurnitureSpawner.TrySpawnOnPlane(prefabIndex);
+                m_FurnitureSpawner.TrySpawnOnPlane(prefab: randomObject);
                 logEntry.objectName = randomObject.name;
                 logEntry.objectPosition = randomObject.transform.position;
                 logEntry.associatedPlaneClassification = randomObject.tag;
@@ -389,13 +384,12 @@ public class SceneManager : MonoBehaviour
                 break;
             case GoalTypes.ReplacementTrial:
                 GameObject removedObject = m_SpawnedObjectsManager.DestroyRandomObject();
-                List<GameObject> furniturePrefabsByTag = m_FurnitureSpawner.furniturePrefabs.Where(prefab => prefab.tag.Equals(removedObject.tag) && !prefab.Equals(removedObject)).ToList();
+                List<GameObject> furniturePrefabsByTag = m_FurnitureSpawner.furniturePrefabs.Where(prefab => prefab.tag.Equals(removedObject.tag) && !removedObject.name.Contains(prefab.name)).ToList();
                 int randomIndex = UnityEngine.Random.Range(0, furniturePrefabsByTag.Count);
-                int furnitureIndex = m_FurnitureSpawner.furniturePrefabs.IndexOf(furniturePrefabsByTag[randomIndex]);
                 m_FurnitureSpawner.applyRandomAngleAtSpawn = false;
-                m_FurnitureSpawner.TrySpawnObject(removedObject.transform.position, Quaternion.identity, furnitureIndex);
-                Debug.Log("Replaced " + removedObject.name + " with " + m_FurnitureSpawner.furniturePrefabs[furnitureIndex].name);
-                logEntry.objectName = removedObject.name + "->" + m_FurnitureSpawner.furniturePrefabs[furnitureIndex].name;
+                m_FurnitureSpawner.TrySpawnObject(removedObject.transform.position, Quaternion.identity, furniturePrefabsByTag[randomIndex]);
+                Debug.Log("Replaced " + removedObject.name + " with " + furniturePrefabsByTag[randomIndex].name);
+                logEntry.objectName = removedObject.name + "->" + furniturePrefabsByTag[randomIndex].name;
                 logEntry.objectPosition = removedObject.transform.position;
                 logEntry.associatedPlaneClassification = removedObject.tag;
                 break;
@@ -438,8 +432,9 @@ public class SceneManager : MonoBehaviour
                 Debug.Log("Trial ended by button press");
             }
         }
+        Destroy(hiddenObject);
         m_LogManager.Log(logEntry);
-        //CompleteGoal();
+        m_CoachingUIParent.SetActive(true);
     }
 
     // called when step button is pressed
@@ -452,7 +447,6 @@ public class SceneManager : MonoBehaviour
     {
         Debug.Log("Primary button is pressed");
         Debug.Log(hit.collider.gameObject.name);
-        m_stopTrial = true;
     }
 
     // called when skip button is pressed
@@ -466,6 +460,8 @@ public class SceneManager : MonoBehaviour
         InitializeGoals(onlyTrials: true);
         m_CurrentGoal = m_Goals.Dequeue();
         m_GoalUICards[m_CurrentGoal.UICardIndex].UIObject.SetActive(true);
+        m_StepButtonTextField.text = m_GoalUICards[m_CurrentGoal.UICardIndex].buttonText;
+        m_SkipButton.SetActive(m_GoalUICards[m_CurrentGoal.UICardIndex].includeSkipButton);
 
 
         if (m_FadeMaterial != null)
@@ -494,7 +490,8 @@ public class SceneManager : MonoBehaviour
     {
         // Spawn furniture
         Debug.Log("Starting experiment");
-        m_FurnitureSpawner.SpawnAll();
+        m_FurnitureSpawner.SpawnAll(1);
+
         m_LogManager.Init();
 
         // on button press, change scene
@@ -509,7 +506,6 @@ public class SceneManager : MonoBehaviour
     public void ResetAll()
     {
         m_CoachingUIParent.SetActive(true);
-
         m_SpawnedObjectsManager.DestroyAllObjects();
 
         InitializeGoals();
@@ -530,7 +526,6 @@ public class SceneManager : MonoBehaviour
 
         m_CurrentGoal = m_Goals.Dequeue();
         m_AllGoalsFinished = false;
-        m_OnboardingFinished = false;
 
         if (m_LearnButton != null)
         {
@@ -542,7 +537,6 @@ public class SceneManager : MonoBehaviour
             m_LearnModal.transform.localScale = Vector3.zero;
         }
 
-        m_CurrentGoalIndex = 0;
     }
 
     private void SelectSpaceVisualizationMode(int mode)
