@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Sirenix.OdinInspector.Editor;
+using UnityEditor.AssetImporters;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -51,7 +53,7 @@ public class ARSpaceManager : MonoBehaviour
         return filteredPlanes;
     }
 
-    public (Vector3, Quaternion) GetRandomPointOnPlane(PlaneClassifications classification)
+    public (Vector3, Quaternion) GetRandomFreePointOnPlane(PlaneClassifications classification, float borderThreshold = 0.5f, float collisionRadius = 0.5f)
     {
         List<ARPlane> planes = GetPlanesByClassification(classification);
         if (planes.Count == 0)
@@ -59,43 +61,58 @@ public class ARSpaceManager : MonoBehaviour
             throw new System.Exception($"No planes found for classification {classification}");
         }
         ARPlane randomPlane = planes[Random.Range(0, planes.Count)];
-        return GetRandomPointOnPlane(randomPlane);
+        return GetRandomFreePointOnPlane(randomPlane, borderThreshold, collisionRadius);
     }
 
-    public (Vector3, Quaternion) GetRandomPointOnPlane(ARPlane plane)
+    public (Vector3, Quaternion) GetRandomFreePointOnPlane(ARPlane plane, float borderThreshold = 0.5f, float collisionRadius = 0.5f)
     {
         Quaternion rotation = Quaternion.identity;
-        float borderThreshold = 0.5f;
-
-        if (plane.alignment == PlaneAlignment.Vertical)
-        // Vector2 -> X is width, Y is height
+        (Vector3, Quaternion) randomPointOnPlane;
+        do
         {
-            // determine direction of the normal with respect to the axes
-            Debug.Log("Normal: " + plane.normal);
-            rotation = Quaternion.LookRotation(plane.normal);
-            if (Mathf.Abs(plane.normal.x) > 0.9f) // Vector3 -> Y is height, Z is width, X is forward (normal)
+            if (plane.alignment == PlaneAlignment.Vertical)
             {
-                float randomZ = Random.Range(plane.center.z - plane.extents.x + borderThreshold, plane.center.z + plane.extents.x - borderThreshold);
-                float randomY = Random.Range(plane.center.y - plane.extents.y + borderThreshold, plane.center.y + plane.extents.y - borderThreshold);
-                return (new Vector3(plane.center.x, randomY, randomZ), rotation);
-
+                randomPointOnPlane = GetRandomPointOnVerticalPlane(plane, out rotation, borderThreshold);
             }
-            else // Vector3 -> Y is height, X is width, Z is forward (normal)
+            else  // Horizontal 
             {
-                float randomX = Random.Range(plane.center.x - plane.extents.x + borderThreshold, plane.center.x + plane.extents.x - borderThreshold);
-                float randomY = Random.Range(plane.center.y - plane.extents.y + borderThreshold, plane.center.y + plane.extents.y - borderThreshold);
-                return (new Vector3(randomX, randomY, plane.center.z), rotation);
+                randomPointOnPlane = GetRandomPointOnHorizontalPlane(plane, rotation, borderThreshold);
             }
+        } while (Physics.CheckSphere(randomPointOnPlane.Item1, collisionRadius)); // check for colision with other objects
+        return randomPointOnPlane;
+    }
 
-
-        }
-        else  // Horizontal 
+    private static (Vector3, Quaternion) GetRandomPointOnHorizontalPlane(ARPlane plane, Quaternion rotation, float borderThreshold)
+    {
         //Vector3 -> Y is up (normal), Z is height, X is width
         // Vector2 -> X is width, Y is height
+        float randomX = Random.Range(plane.center.x - plane.extents.x + borderThreshold, plane.center.x + plane.extents.x - borderThreshold);
+        float randomZ = Random.Range(plane.center.z - plane.extents.y + borderThreshold, plane.center.z + plane.extents.y - borderThreshold);
+        return (new Vector3(randomX, plane.center.y, randomZ), rotation);
+    }
+
+    private static (Vector3, Quaternion) GetRandomPointOnVerticalPlane(ARPlane plane, out Quaternion rotation, float borderThreshold)
+    {
+        // Vector2 -> X is width, Y is height
+        rotation = Quaternion.LookRotation(plane.normal);
+        if (plane.classifications.HasFlag(PlaneClassifications.WindowFrame) || plane.classifications.HasFlag(PlaneClassifications.DoorFrame))
+        {
+            return (plane.center, rotation);
+        }
+
+        // determine direction of the normal with respect to the axes
+        if (Mathf.Abs(plane.normal.x) > 0.9f) // Vector3 -> Y is height, Z is width, X is forward (normal)
+        {
+            float randomZ = Random.Range(plane.center.z - plane.extents.x + borderThreshold, plane.center.z + plane.extents.x - borderThreshold);
+            float randomY = Random.Range(plane.center.y - plane.extents.y + borderThreshold, plane.center.y + plane.extents.y - borderThreshold);
+            return (new Vector3(plane.center.x, randomY, randomZ), rotation);
+
+        }
+        else // Vector3 -> Y is height, X is width, Z is forward (normal)
         {
             float randomX = Random.Range(plane.center.x - plane.extents.x + borderThreshold, plane.center.x + plane.extents.x - borderThreshold);
-            float randomZ = Random.Range(plane.center.z - plane.extents.y + borderThreshold, plane.center.z + plane.extents.y - borderThreshold);
-            return (new Vector3(randomX, plane.center.y, randomZ), rotation);
+            float randomY = Random.Range(plane.center.y - plane.extents.y + borderThreshold, plane.center.y + plane.extents.y - borderThreshold);
+            return (new Vector3(randomX, randomY, plane.center.z), rotation);
         }
     }
 

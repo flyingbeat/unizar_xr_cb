@@ -9,6 +9,7 @@ TagManager:
   - Floor
   - Couch
   - Ceiling
+  - WindowFrame
   layers:
   - Default
   - TransparentFX

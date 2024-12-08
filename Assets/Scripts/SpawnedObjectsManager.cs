@@ -1,15 +1,10 @@
-using System.Collections.Generic;
-using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 [RequireComponent(typeof(FurnitureSpawner))]
 public class SpawnedObjectsManager : MonoBehaviour
 {
-    [SerializeField]
-    TMP_Dropdown m_ObjectSelectorDropdown;
 
     [SerializeField]
     Button m_DestroyObjectsButton;
@@ -18,31 +13,15 @@ public class SpawnedObjectsManager : MonoBehaviour
 
     void OnEnable()
     {
-        //m_Spawner = GetComponent<ObjectSpawner>();
         m_FurnitureSpawner = GetComponent<FurnitureSpawner>();
 
-        //m_Spawner.spawnAsChildren = true;
         m_FurnitureSpawner.spawnAsChildren = true;
-        OnObjectSelectorDropdownValueChanged(m_ObjectSelectorDropdown.value);
-        m_ObjectSelectorDropdown.onValueChanged.AddListener(OnObjectSelectorDropdownValueChanged);
-        m_DestroyObjectsButton.onClick.AddListener(OnDestroyObjectsButtonClicked);
+        m_DestroyObjectsButton.onClick.AddListener(DestroyAllObjects);
     }
 
     void OnDisable()
     {
-        m_ObjectSelectorDropdown.onValueChanged.RemoveListener(OnObjectSelectorDropdownValueChanged);
-        m_DestroyObjectsButton.onClick.RemoveListener(OnDestroyObjectsButtonClicked);
-    }
-
-    void OnObjectSelectorDropdownValueChanged(int value)
-    {
-        if (value == 0)
-        {
-            //m_Spawner.RandomizeSpawnOption();
-            return;
-        }
-
-        //m_Spawner.spawnOptionIndex = value - 1;
+        m_DestroyObjectsButton.onClick.RemoveListener(DestroyAllObjects);
     }
 
     public GameObject HideRandomObject()
@@ -117,17 +96,6 @@ public class SpawnedObjectsManager : MonoBehaviour
         foreach (Transform child in transform)
         {
             Destroy(child.gameObject);
-        }
-    }
-
-    void OnDestroyObjectsButtonClicked()
-    {
-        Debug.Log(m_FurnitureSpawner.transform.ToString());
-        foreach (Transform child in m_FurnitureSpawner.transform)
-        {
-            Debug.Log("child " + child.gameObject.ToString());
-            Debug.Log(child.gameObject.transform.rotation);
-            //Destroy(child.gameObject);
         }
     }
 

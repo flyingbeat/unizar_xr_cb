@@ -24,7 +24,7 @@ public class FurnitureSpawner : BaseObjectSpawner
             Debug.LogWarning($"Invalid tag {tag} for furniture prefab.");
             throw new ArgumentException("Prefabs have to be tagged according to their associated plane classification.");
         }
-        (Vector3 randomPosition, Quaternion rotation) = m_ARSpaceManager.GetRandomPointOnPlane(associatedPlaneClassification);
+        (Vector3 randomPosition, Quaternion rotation) = m_ARSpaceManager.GetRandomFreePointOnPlane(associatedPlaneClassification);
         return base.TrySpawnObject(randomPosition, rotation, prefab);
     }
 

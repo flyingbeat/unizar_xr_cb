@@ -121,6 +121,14 @@ public class SceneManager : MonoBehaviour
     LogManager m_LogManager;
     private SpaceVisualizationMode _visualizationMode = SpaceVisualizationMode.None;
 
+    [SerializeField]
+    int m_nrOfInitialObjects = 5;
+
+    public void SetNrOfInitialObjects(float nrOfInitialObjects)
+    {
+        m_nrOfInitialObjects = (int)nrOfInitialObjects;
+    }
+
     void Start()
     {
         InitializeGoals();
@@ -490,7 +498,7 @@ public class SceneManager : MonoBehaviour
     {
         // Spawn furniture
         Debug.Log("Starting experiment");
-        m_FurnitureSpawner.SpawnAll(1);
+        m_FurnitureSpawner.SpawnAll(m_nrOfInitialObjects);
 
         m_LogManager.Init();
 

@@ -72,6 +72,7 @@ public class LogManager : MonoBehaviour
     public void Log(LogEntry logEntry)
     {
         logEntries.Add(logEntry);
+        SaveToFile();
     }
 
     private string ConvertToCSV(List<LogEntry> data)
@@ -86,7 +87,6 @@ public class LogManager : MonoBehaviour
 
     private void SaveCSV(string filePath, string content)
     {
-        Debug.Log("Saving log" + fileName + " to " + filePath);
         File.WriteAllText(filePath, content);
     }
 }
