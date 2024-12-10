@@ -47,6 +47,9 @@ public class SceneManager : MonoBehaviour
     }
 
     Queue<Goal> m_Goals;
+
+    [SerializeField]
+    List<GoalTypes> m_trials = new();
     Goal m_CurrentGoal;
     bool m_AllGoalsFinished = false;
 
@@ -244,15 +247,10 @@ public class SceneManager : MonoBehaviour
         }
 
         // trials with change in scene
-        var removal = new Goal(GoalTypes.RemovalTrial, 5); // card 5
-        var addition = new Goal(GoalTypes.AdditionTrial, 5); // card 5
-        var relocation = new Goal(GoalTypes.RelocationTrial, 5); // card 5
-        var replacement = new Goal(GoalTypes.ReplacementTrial, 5); // card 5
-
-        m_Goals.Enqueue(removal);
-        m_Goals.Enqueue(addition);
-        m_Goals.Enqueue(relocation);
-        m_Goals.Enqueue(replacement);
+        foreach (var trial in m_trials)
+        {
+            m_Goals.Enqueue(new Goal(trial, 5));
+        }
 
         var experimentEndGoal = new Goal(GoalTypes.EndExperiment, 6); // card 6
         m_Goals.Enqueue(experimentEndGoal);
@@ -297,6 +295,7 @@ public class SceneManager : MonoBehaviour
         switch (m_CurrentGoal.CurrentGoal)
         {
             case GoalTypes.EndOnboarding:
+                Debug.Log("End Onboarding");
                 StartExperiment();
                 break;
 
@@ -338,7 +337,7 @@ public class SceneManager : MonoBehaviour
                 if (m_FadeMaterial != null) m_FadeMaterial.FadeSkybox(true);
                 if (m_PassthroughToggle != null) m_PassthroughToggle.isOn = true;
                 if (m_LearnButton != null) m_LearnButton.SetActive(true);
-                SelectSpaceVisualizationMode(SpaceVisualizationMode.Planes);
+                SelectSpaceVisualizationMode(SpaceVisualizationMode.Both);
                 break;
             case GoalTypes.UseControllers:
                 m_ContinueButton.enabled = false;
@@ -460,6 +459,7 @@ public class SceneManager : MonoBehaviour
     // called when skip button is pressed
     public void ForceEndOnboarding()
     {
+        Debug.Log("Forcing end of onboarding");
         foreach (var step in m_GoalUICards)
         {
             step.UIObject.SetActive(false);

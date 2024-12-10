@@ -43,6 +43,7 @@ public class ARPlaneColorizer : MonoBehaviour
         if (classifications.HasFlag(PlaneClassifications.WallArt)) return new Color(1f, 0.4f, 0f);  //orange
         if (classifications.HasFlag(PlaneClassifications.DoorFrame)) return Color.magenta;
         if (classifications.HasFlag(PlaneClassifications.WindowFrame)) return Color.cyan;
+        if (classifications.HasFlag(PlaneClassifications.Other)) return Color.black;
 
         return Color.gray; //Other - Default color
     }

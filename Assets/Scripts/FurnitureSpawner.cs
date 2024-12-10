@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
 public class FurnitureSpawner : BaseObjectSpawner
@@ -19,6 +18,7 @@ public class FurnitureSpawner : BaseObjectSpawner
     public bool TrySpawnOnPlane(GameObject prefab = null)
     {
         string tag = (prefab != null) ? prefab.tag : furniturePrefabs[spawnOptionIndex].tag;
+        Debug.Log($"Spawning: {((prefab != null) ? prefab.name : furniturePrefabs[spawnOptionIndex].name)}");
         if (!Enum.TryParse(tag, out PlaneClassifications associatedPlaneClassification))
         {
             Debug.LogWarning($"Invalid tag {tag} for furniture prefab.");
@@ -42,6 +42,7 @@ public class FurnitureSpawner : BaseObjectSpawner
 
     public void SpawnAll(int limit = -1)
     {
+        int maxObjects = 20;
         if (limit == -1)
         {
             limit = objectPrefabs.Count;
@@ -52,12 +53,13 @@ public class FurnitureSpawner : BaseObjectSpawner
             limit = objectPrefabs.Count;
         }
 
+        if (limit > maxObjects) limit = maxObjects;
         for (int i = 0; i < limit; i++)
         {
             spawnOptionIndex = i;
             if (!TrySpawnOnPlane())
             {
-                Debug.LogWarning("Failed to spawn object " + objectPrefabs[i].name);
+                Debug.LogWarning("Failed to spawn object " + objectPrefabs[spawnOptionIndex].name);
             }
         }
     }
