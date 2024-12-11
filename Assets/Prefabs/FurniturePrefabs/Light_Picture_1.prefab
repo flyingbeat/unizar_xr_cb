@@ -47,7 +47,7 @@ GameObject:
   - component: {fileID: 7501163330198292814}
   m_Layer: 0
   m_Name: Box004
-  m_TagString: Untagged
+  m_TagString: WallFace
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -154,7 +154,7 @@ GameObject:
   - component: {fileID: 199798540887317500}
   m_Layer: 0
   m_Name: Box003
-  m_TagString: Untagged
+  m_TagString: WallFace
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

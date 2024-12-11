@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2236435358842965945}
   m_Layer: 0
   m_Name: Canvas 1
-  m_TagString: Untagged
+  m_TagString: WallFace
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -233,7 +233,7 @@ GameObject:
   - component: {fileID: 1234860746171430538}
   m_Layer: 0
   m_Name: Canvas 2
-  m_TagString: Untagged
+  m_TagString: WallFace
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

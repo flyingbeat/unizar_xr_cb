@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3423613059840840461}
   m_Layer: 0
   m_Name: CoffeTable_Decor_Book
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -99,7 +99,7 @@ GameObject:
   - component: {fileID: 5450855714332835949}
   m_Layer: 0
   m_Name: CoffeTable_Decor_Bottle
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -244,7 +244,7 @@ GameObject:
   - component: {fileID: 125724214745842179}
   m_Layer: 0
   m_Name: CoffeTable_Decor_Cup
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -330,7 +330,7 @@ GameObject:
   - component: {fileID: 8311967709838989357}
   m_Layer: 0
   m_Name: CoffeTable_Decor_Vase
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -416,7 +416,7 @@ GameObject:
   - component: {fileID: 8210050812958012624}
   m_Layer: 0
   m_Name: CoffeTable_Decor_BottleBack
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -502,7 +502,7 @@ GameObject:
   - component: {fileID: 8261259806352130316}
   m_Layer: 0
   m_Name: CoffeTable_Decor_VasePlant
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

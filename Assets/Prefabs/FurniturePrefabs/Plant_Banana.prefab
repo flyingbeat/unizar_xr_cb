@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 369869064242686388}
   m_Layer: 0
   m_Name: Soil
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -193,6 +193,10 @@ PrefabInstance:
       value: Pot
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: c9ee9dca9bce47845a361228315a4554, type: 3}
+      propertyPath: m_TagString
+      value: Floor
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c9ee9dca9bce47845a361228315a4554, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 4294967295
       objectReference: {fileID: 0}
@@ -285,6 +289,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 022f8067c12746c41bfb9d40ca1b97a0, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 022f8067c12746c41bfb9d40ca1b97a0, type: 3}
+      propertyPath: m_TagString
+      value: Floor
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 022f8067c12746c41bfb9d40ca1b97a0, type: 3}
       propertyPath: m_StaticEditorFlags

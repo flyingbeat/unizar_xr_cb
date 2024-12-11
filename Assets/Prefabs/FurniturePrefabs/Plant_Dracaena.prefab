@@ -48,7 +48,7 @@ GameObject:
   - component: {fileID: 1108105006341516661}
   m_Layer: 0
   m_Name: Pot
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 1031415971049635937}
   m_Layer: 0
   m_Name: Dracaena_Stem
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -220,7 +220,7 @@ GameObject:
   - component: {fileID: 4892822518167407319}
   m_Layer: 0
   m_Name: Soil_Circle
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -307,7 +307,7 @@ GameObject:
   - component: {fileID: 1884070852446472838}
   m_Layer: 0
   m_Name: Dracaena_Leaf
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

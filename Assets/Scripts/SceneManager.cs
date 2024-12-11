@@ -454,6 +454,7 @@ public class SceneManager : MonoBehaviour
     {
         Debug.Log("Primary button is pressed");
         Debug.Log(hit.collider.gameObject.name);
+        Debug.Log("tag: " + hit.collider.gameObject.tag);
     }
 
     // called when skip button is pressed

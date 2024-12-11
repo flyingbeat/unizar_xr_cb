@@ -17,15 +17,20 @@ public class FurnitureSpawner : BaseObjectSpawner
 
     public bool TrySpawnOnPlane(GameObject prefab = null)
     {
-        string tag = (prefab != null) ? prefab.tag : furniturePrefabs[spawnOptionIndex].tag;
-        Debug.Log($"Spawning: {((prefab != null) ? prefab.name : furniturePrefabs[spawnOptionIndex].name)}");
-        if (!Enum.TryParse(tag, out PlaneClassifications associatedPlaneClassification))
+        GameObject spawningObject = (prefab != null) ? prefab : furniturePrefabs[spawnOptionIndex];
+        BoxCollider objectBoundingBox = spawningObject.GetComponent<BoxCollider>();
+        if (objectBoundingBox == null)
         {
-            Debug.LogWarning($"Invalid tag {tag} for furniture prefab.");
-            throw new ArgumentException("Prefabs have to be tagged according to their associated plane classification.");
+            objectBoundingBox = spawningObject.GetComponentInChildren<BoxCollider>();
         }
-        (Vector3 randomPosition, Quaternion rotation) = m_ARSpaceManager.GetRandomFreePointOnPlane(associatedPlaneClassification);
-        return base.TrySpawnObject(randomPosition, rotation, prefab);
+        Debug.Log($"Spawning: {spawningObject.name}");
+        if (!Enum.TryParse(spawningObject.tag, out PlaneClassifications associatedPlaneClassification) || objectBoundingBox == null)
+        {
+            Debug.LogWarning($"Invalid tag {spawningObject.tag} for furniture prefab.");
+            throw new ArgumentException("Prefabs have to be tagged according to their associated plane classification and have a BoxCollider component.");
+        }
+        (Vector3 randomPosition, Quaternion rotation) = m_ARSpaceManager.GetRandomFreePointOnPlane(associatedPlaneClassification, objectBoundingBox.size * spawningObject.transform.localScale.x);
+        return base.TrySpawnObject(randomPosition, rotation, spawningObject);
     }
 
     public bool TrySpawnOnPlane(int furnitureIndex)

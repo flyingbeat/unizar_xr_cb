@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
@@ -222,6 +223,8 @@ public class BaseObjectSpawner : MonoBehaviour
 
         newObject.transform.position = spawnPoint;
         EnsureFacingCamera();
+
+        newObject.SetLayerRecursively(LayerMask.NameToLayer("Objects"));
 
         newObject.transform.rotation = rotation;
 

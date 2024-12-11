@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 8566330168541438118}
   m_Layer: 0
   m_Name: Bottle_05_Glass
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -121,7 +121,7 @@ GameObject:
   - component: {fileID: 5796940951214491723}
   m_Layer: 0
   m_Name: Bottle_5_Liquid
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
@@ -241,7 +241,7 @@ GameObject:
   - component: {fileID: 2116466550035721072}
   m_Layer: 0
   m_Name: Bottle_05 1
-  m_TagString: Untagged
+  m_TagString: Table
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295

@@ -121,7 +121,7 @@ GameObject:
   - component: {fileID: 5998412283494389819}
   m_Layer: 0
   m_Name: Light_Floor_02_Bulb
-  m_TagString: Untagged
+  m_TagString: Floor
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967295
